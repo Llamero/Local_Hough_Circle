@@ -646,7 +646,7 @@ public class Hough_GUI implements PlugInFilter{
                 //guiFrame.dispose();
                 
                 //Start the Hough Transform
-                //startTransform();
+                new Hough_Circle().execute();
             } //When push button is pushed, retrieve the state of
             );
             // </editor-fold>

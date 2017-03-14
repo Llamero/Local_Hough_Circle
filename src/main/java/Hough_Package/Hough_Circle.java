@@ -112,7 +112,8 @@ public class Hough_Circle extends SwingWorker<Integer, String> {
     
    
 
-    private void readParameters(){
+    @Override
+     protected Integer doInBackground() throws Exception{
         Hough_GUI parameters = new Hough_GUI();
         this.radiusMin = parameters.getParam_radiusMin();
         this.radiusMax = parameters.getParam_radiusMax();
@@ -131,7 +132,11 @@ public class Hough_Circle extends SwingWorker<Integer, String> {
         this.showCircles = parameters.getParam_showCircles();
         this.showRadius = parameters.getParam_showRadius();
         this.showScores = parameters.getParam_showScores();
-        this.results = parameters.getParam_results();   
+        this.results = parameters.getParam_results(); 
+IJ.log("I am in the analysis class.");
+
+        startTransform();
+        return 0;
     }
     
     public void startTransform(){
@@ -145,6 +150,8 @@ public class Hough_Circle extends SwingWorker<Integer, String> {
         //Initialize variables
         nCircles = 0;
         circleIDcounter = 0;
+
+IJ.log("I am doing a transform.");
         
         //Calculate Hough parameters
         depth = ((radiusMax-radiusMin)/radiusInc)+1;
@@ -1217,10 +1224,4 @@ IJ.log("" + totalTime);
             throw new RuntimeException(ie);  
         }  
     } 
-
-    @Override
-    protected Integer doInBackground() throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
 }
