@@ -22,7 +22,6 @@ package Hough_Package;
 */
 
 import ij.*;
-import ij.plugin.filter.PlugInFilter;
 import ij.process.*;
 import java.awt.*;
 import ij.plugin.HyperStackConverter;
@@ -32,8 +31,6 @@ import javax.swing.*;
 import ij.measure.ResultsTable;
 import ij.plugin.filter.Analyzer;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  *
