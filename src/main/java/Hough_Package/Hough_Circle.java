@@ -117,8 +117,24 @@ public class Hough_Circle extends SwingWorker<Integer, String> {
 
     private void readParameters(){
         Hough_GUI parameters = new Hough_GUI();
-        this.radiusMin = parameters.radiusMin;
-        
+        this.radiusMin = parameters.getParam_radiusMin();
+        this.radiusMax = parameters.getParam_radiusMax();
+        this.radiusInc = parameters.getParam_radiusInc();
+        this.minCircles = parameters.getParam_minCircles();
+        this.maxCircles = parameters.getParam_maxCircles();
+        this.threshold = parameters.getParam_threshold();
+        this.thresholdRatio = parameters.getParam_thresholdRatio();
+        this.resolution = parameters.getParam_resolution();
+        this.ratio = parameters.getParam_ratio();
+        this.searchBand = parameters.getParam_searchBand();
+        this.searchRadius = parameters.getParam_searchRadius();
+        this.reduce = parameters.getParam_reduce();
+        this.local = parameters.getParam_local();
+        this.houghSeries = parameters.getParam_houghSeries();
+        this.showCircles = parameters.getParam_showCircles();
+        this.showRadius = parameters.getParam_showRadius();
+        this.showScores = parameters.getParam_showScores();
+        this.results = parameters.getParam_results();   
     }
     
     public void startTransform(){

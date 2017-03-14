@@ -33,26 +33,26 @@ public class Hough_GUI implements PlugInFilter{
     //***GUI input variables***
     // <editor-fold desc="Initialize variables">
     //Search parameters
-    public int radiusMin;  // Find circles with radius grater or equal radiusMin - argument syntax: "min=#"
-    private int radiusMax;  // Find circles with radius less or equal radiusMax - argument syntax: "max=#"
-    private int radiusInc;  // Increment used to go from radiusMin to radiusMax - argument syntax: "inc=#"
-    private int minCircles; // Minumum number of circles to be found - argument syntax: "minCircles=#"    
-    private int maxCircles; // Maximum number of circles to be found - argument syntax: "maxCircles=#"
-    private int threshold = -1; // An alternative to maxCircles. All circles with a value in the hough space greater then threshold are marked. Higher thresholds result in fewer circles. - argument syntax: "threshold=#"
-    private double thresholdRatio; //Ratio input from GUI that expresses threshold as ratio of resolution (highest possible # of votes)
-    private int resolution; //The number of steps to use per transform (i.e. number of voting rounds)
-    private double ratio; // Ratio of found circle radius to clear out surrounding neighbors
-    private int searchBand = 0; //The +/- range of radii to search for relative to the last found radius - argument syntax: "bandwidth=#"
-    private int searchRadius = 0; //The search radius to look for the next centroid relative to the last found centroid - argument syntax: "radius=#"
-    private boolean reduce = false; //Cap the transform resolution by removeing redundant steps
-    private boolean local = false; //Whether or not the search is going to be local
+    private int radiusMin; // Find circles with radius grater or equal radiusMin - argument syntax: "min=#"
+    private int radiusMax; // Find circles with radius less or equal radiusMax - argument syntax: "max=#"
+    private int radiusInc; // Increment used to go from radiusMin to radiusMax - argument syntax: "inc=#"
+    private int minCircles;// Minumum number of circles to be found - argument syntax: "minCircles=#"    
+    private int maxCircles;// Maximum number of circles to be found - argument syntax: "maxCircles=#"
+    private int threshold = -1;// An alternative to maxCircles. All circles with a value in the hough space greater then threshold are marked. Higher thresholds result in fewer circles. - argument syntax: "threshold=#"
+    private double thresholdRatio;//Ratio input from GUI that expresses threshold as ratio of resolution (highest possible # of votes)
+    private int resolution;//The number of steps to use per transform (i.e. number of voting rounds)
+    private double ratio;// Ratio of found circle radius to clear out surrounding neighbors
+    private int searchBand = 0;//The +/- range of radii to search for relative to the last found radius - argument syntax: "bandwidth=#"
+    private int searchRadius = 0;//The search radius to look for the next centroid relative to the last found centroid - argument syntax: "radius=#"
+    private boolean reduce = false;//Cap the transform resolution by removeing redundant steps
+    private boolean local = false;//Whether or not the search is going to be local
     
     //Output parameters
-    private boolean houghSeries = false; //Contains whether the user wants the Hough series stack as an output - argument syntax: "show_raw"
-    private boolean showCircles = false; //Contains whether the user wants the circles found as an output - argument syntax: "show_mask"
-    private boolean showRadius = false; //Contains whether the user wants a map of centroids and radii outputed from search - argument syntax: "show_centroids"
-    private boolean showScores = false; //Contains whether the user wants a map of centroids and Hough scores outputed from search - argument syntax: "show_scores"
-    private boolean results = false; //Contains whether the user wants to export the measurements to a reuslts table 
+    private boolean houghSeries = false;//Contains whether the user wants the Hough series stack as an output - argument syntax: "show_raw"
+    private boolean showCircles = false;//Contains whether the user wants the circles found as an output - argument syntax: "show_mask"
+    private boolean showRadius = false;//Contains whether the user wants a map of centroids and radii outputed from search - argument syntax: "show_centroids"
+    private boolean showScores = false;//Contains whether the user wants a map of centroids and Hough scores outputed from search - argument syntax: "show_scores"
+    private boolean results = false;//Contains whether the user wants to export the measurements to a reuslts table 
     
     public int setup(String arg, ImagePlus imp) {        
         
@@ -62,7 +62,7 @@ public class Hough_GUI implements PlugInFilter{
         }
         
         //Sends arduments to ImageJ that tells it how to run the plugin - tells it to accept all grayscale and supports selections
-        return DOES_8G+DOES_16+DOES_32+SUPPORTS_MASKING; //Do not include DOES_STACKS, as this will call the GUI once for each slice
+        return DOES_8G+DOES_16+DOES_32+SUPPORTS_MASKING;//Do not include DOES_STACKS, as this will call the GUI once for each slice
     }
     
     void showAbout() {
@@ -78,7 +78,7 @@ public class Hough_GUI implements PlugInFilter{
     
     public void run(ImageProcessor ip) {
         //Show a Dialog Window for user input of parameters
-        readParameters(); 
+        readParameters();
     } 
     
     void readParameters() {
@@ -96,59 +96,59 @@ public class Hough_GUI implements PlugInFilter{
             for (String argument : arguments) { //passes each argment in the array to the variable "argument"
                 if (argument.matches(".*minRadius.*=.*")) {
                     //Retrieve min radius
-                    radiusMin = Integer.parseInt(argument.replaceAll("\\D+", "")); //Remove all non digits
+                    this.radiusMin = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*maxRadius.*=.*")) {
                     //Retrieve max radius
-                    radiusMax = Integer.parseInt(argument.replaceAll("\\D+", "")); //Remove all non digits
+                    this.radiusMax = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*inc.*=.*")) {
                     //Retrieve radius increment
-                    radiusInc = Integer.parseInt(argument.replaceAll("\\D+", "")); //Remove all non digits
+                    this.radiusInc = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*minCircles.*=.*")) {
                     //Retrieve number of circles
-                    minCircles = Integer.parseInt(argument.replaceAll("\\D+", "")); //Remove all non digits
+                    this.minCircles = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*maxCircles.*=.*")) {
                     //Retrieve number of circles
-                    maxCircles = Integer.parseInt(argument.replaceAll("\\D+", "")); //Remove all non digits
+                    this.maxCircles = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*threshold.*=.*")) {
                     //Retrieve Hough score threshold
                     //Code from: http://www.itgo.me/a/x8683194173055835262/get-float-or-integer-value-from-the-string-in-java
-                    Pattern pattern = Pattern.compile("\\d+(?:\\.\\d+)?"); // Match int or float
+                    Pattern pattern = Pattern.compile("\\d+(?:\\.\\d+)?");// Match int or float
                     Matcher matcher = pattern.matcher(argument);
-                    if(matcher.find()) thresholdRatio = Double.parseDouble(matcher.group());
+                    if(matcher.find()) this.thresholdRatio = Double.parseDouble(matcher.group());
                 }
                 else if (argument.matches(".*resolution.*=.*")) {
                     //Retrieve Hough score threshold
-                    resolution = Integer.parseInt(argument.replaceAll("\\D+", "")); //Remove all non digits
+                    this.resolution = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*ratio.*=.*")) {
                     //Retrieve clearing neighbor radius ratio
                     //Code from: http://www.itgo.me/a/x8683194173055835262/get-float-or-integer-value-from-the-string-in-java
-                    Pattern pattern = Pattern.compile("\\d+(?:\\.\\d+)?"); // Match int or float
+                    Pattern pattern = Pattern.compile("\\d+(?:\\.\\d+)?");// Match int or float
                     Matcher matcher = pattern.matcher(argument);
-                    if(matcher.find()) ratio = Double.parseDouble(matcher.group());
+                    if(matcher.find()) this.ratio = Double.parseDouble(matcher.group());
                 }
                 else if (argument.matches(".*bandwidth.*=.*")) {
                     //Retrieve Hough score threshold
-                    searchBand = Integer.parseInt(argument.replaceAll("\\D+", "")); //Remove all non digits
+                    this.searchBand = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*local_radius.*=.*")) {
                     //Retrieve Hough score threshold
-                    searchRadius = Integer.parseInt(argument.replaceAll("\\D+", "")); //Remove all non digits
+                    this.searchRadius = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
 
                 //Retrieve checkbox status
-                if (argument.matches(".*reduce.*")) reduce = true;
-                if (argument.matches(".*local_search.*")) local = true;
-                if (argument.matches(".*show_raw.*")) houghSeries = true;
-                if (argument.matches(".*show_mask.*")) showCircles = true;
-                if (argument.matches(".*show_centroids.*")) showRadius = true;
-                if (argument.matches(".*show_scores.*")) showScores = true;
-                if (argument.matches(".*results_table.*")) results = true;
+                if (argument.matches(".*reduce.*")) this.reduce = true;
+                if (argument.matches(".*local_search.*")) this.local = true;
+                if (argument.matches(".*show_raw.*")) this.houghSeries = true;
+                if (argument.matches(".*show_mask.*")) this.showCircles = true;
+                if (argument.matches(".*show_centroids.*")) this.showRadius = true;
+                if (argument.matches(".*show_scores.*")) this.showScores = true;
+                if (argument.matches(".*results_table.*")) this.results = true;
             }
             
             //Start the Hough Transform
@@ -186,7 +186,7 @@ public class Hough_GUI implements PlugInFilter{
             final JLabel  guiMinNumLabel = new javax.swing.JLabel();
             final JTextField guiMinNumText = new javax.swing.JTextField();
             final JLabel guiMaxNumLabel = new javax.swing.JLabel();
-            final JTextField guiMaxNumText = new javax.swing.JTextField();        
+            final JTextField guiMaxNumText = new javax.swing.JTextField();       
             final JLabel guiThreshLabel = new javax.swing.JLabel();
             final JTextField guiThreshText = new javax.swing.JTextField();
             final JLabel guiResLabel = new javax.swing.JLabel();
@@ -208,7 +208,7 @@ public class Hough_GUI implements PlugInFilter{
             final JButton guiOKButton = new javax.swing.JButton();
             
             //Format GUI text
-            guiTitle.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+            guiTitle.setFont(new java.awt.Font("Tahoma", 0, 24));// NOI18N
             guiTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
             guiTitle.setText("Hough Circle Transform");
 
@@ -355,7 +355,7 @@ public class Hough_GUI implements PlugInFilter{
                 }
             });
 
-            guiSearchLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+            guiSearchLabel.setFont(new java.awt.Font("Tahoma", 0, 14));// NOI18N
             guiSearchLabel.setText("Search parameters:");
 
             guiMinLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
@@ -549,7 +549,7 @@ public class Hough_GUI implements PlugInFilter{
                             guiHoughBox.setVisible(false);
 
                             guiMaxNumText.setText("65535");
-                            guiFrame.pack(); 
+                            guiFrame.pack();
                         }
                         //setup full advanced
                         else{
@@ -587,7 +587,7 @@ public class Hough_GUI implements PlugInFilter{
                 }
             });
 
-            guiOutputLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+            guiOutputLabel.setFont(new java.awt.Font("Tahoma", 0, 14));// NOI18N
             guiOutputLabel.setText("Output options:");
 
             guiRawBox.setText("Raw Hough transform series");
@@ -597,7 +597,7 @@ public class Hough_GUI implements PlugInFilter{
             guiPointBox.setText("Circle centroid(s) marked on the original image");
 
             guiRadiusBox.setText("Map of circle radius at centroids (pixel intensity = circle radius)");
-            guiRadiusBox.setVisible(false);                
+            guiRadiusBox.setVisible(false);               
                             
             guiHoughBox.setText("Map of circle score at centroids (pixel intensity = Hough score)");
             guiHoughBox.setVisible(false);
@@ -610,37 +610,37 @@ public class Hough_GUI implements PlugInFilter{
                 // </editor-fold>
                 // <editor-fold desc="Retrieve GUI arguments and calculate Hough parameters">
                 //Retrive the numbers from the text boxes and combobox
-                radiusMin = Integer.parseInt(guiMinText.getText());
-                radiusMax = Integer.parseInt(guiMaxText.getText());
-                radiusInc = Integer.parseInt(guiIncText.getText());
-                minCircles = Integer.parseInt(guiMinNumText.getText()); 
-                maxCircles = Integer.parseInt(guiMaxNumText.getText());
-                thresholdRatio = Double.parseDouble(guiThreshText.getText());
-                resolution = Integer.parseInt(guiResText.getText());
-                ratio = Double.parseDouble(guiClearText.getText());
-                searchBand = Integer.parseInt(guiRadiusBandText.getText());
-                searchRadius = Integer.parseInt(guiSearchRadText.getText());
-                reduce = guiReduceBox.isSelected();
-                local = guiLocalBox.isSelected();
+                this.radiusMin = Integer.parseInt(guiMinText.getText());
+                this.radiusMax = Integer.parseInt(guiMaxText.getText());
+                this.radiusInc = Integer.parseInt(guiIncText.getText());
+                this.minCircles = Integer.parseInt(guiMinNumText.getText());
+                this.maxCircles = Integer.parseInt(guiMaxNumText.getText());
+                this.thresholdRatio = Double.parseDouble(guiThreshText.getText());
+                this.resolution = Integer.parseInt(guiResText.getText());
+                this.ratio = Double.parseDouble(guiClearText.getText());
+                this.searchBand = Integer.parseInt(guiRadiusBandText.getText());
+                this.searchRadius = Integer.parseInt(guiSearchRadText.getText());
+                this.reduce = guiReduceBox.isSelected();
+                this.local = guiLocalBox.isSelected();
                 
                 //Retrieve the check box status
-                houghSeries = guiRawBox.isSelected();
-                showCircles = guiPointBox.isSelected();
-                showRadius = guiRadiusBox.isSelected();
-                showScores = guiHoughBox.isSelected();
-                results = guiResultsBox.isSelected();
+                this.houghSeries = guiRawBox.isSelected();
+                this.showCircles = guiPointBox.isSelected();
+                this.showRadius = guiRadiusBox.isSelected();
+                this.showScores = guiHoughBox.isSelected();
+                this.results = guiResultsBox.isSelected();
                 
                 //Override searchBand and searchRad if in local easy mode
                 if(guiEasyModeButton.isSelected() & guiLocalBox.isSelected()){
-                    searchRadius = radiusMin;
-                    searchBand = radiusMax-radiusMin;
+                    this.searchRadius = this.radiusMin;
+                    this.searchBand = this.radiusMax-radiusMin;
                 }
                 
                 //Override impossible inputs
-                if (maxCircles > 65535) maxCircles = 65535;
-                if (minCircles > maxCircles) minCircles = maxCircles;
-                if (searchBand < 1) searchBand = 1;
-                if (searchRadius < 1) searchRadius = 1;
+                if (this.maxCircles > 65535) this.maxCircles = 65535;
+                if (this.minCircles > this.maxCircles) this.minCircles = this.maxCircles;
+                if (this.searchBand < 1) this.searchBand = 1;
+                if (this.searchRadius < 1) this.searchRadius = 1;
                 
                 //Remove the GUI frame now that it is no longer needed
                 //guiFrame.dispose();
@@ -792,8 +792,85 @@ public class Hough_GUI implements PlugInFilter{
             guiFrame.pack();
 
             //Show the GUI
-            guiFrame.setVisible(true); 
+            guiFrame.setVisible(true);
             // </editor-fold>
         }
     }
+    
+    //Create public functions that allow other classes to access
+    //By leaving the variables private, and instead allowing access of private variables between classes via public functions,
+    //This helps ensure variables stay local to their classes, unless emplicitly called by another class:
+    //http://stackoverflow.com/questions/1022880/accessing-a-variable-from-another-class
+    public int getParam_radiusMin() {
+        return this.radiusMin;
+    }
+    
+    public int getParam_radiusMax() {
+    	return this.radiusMax;
+    }
+    
+    public int getParam_radiusInc() {
+    	return this.radiusInc;
+    }
+    
+    public int getParam_minCircles() {
+    	return this.minCircles;
+    }
+    
+    public int getParam_maxCircles() {
+    	return this.maxCircles;
+    }
+    
+    public int getParam_threshold() {
+    	return this.threshold;
+    }
+    
+    public double getParam_thresholdRatio() {
+    	return this.thresholdRatio;
+    }
+    
+    public int getParam_resolution() {
+    	return this.resolution;
+    }
+    
+    public double getParam_ratio() {
+    	return this.ratio;
+    }
+    
+    public int getParam_searchBand() {
+    	return this.searchBand;
+    }
+    
+    public int getParam_searchRadius() {
+    	return this.searchRadius;
+    }
+    
+    public boolean getParam_reduce() {
+    	return this.reduce;
+    }
+    
+    public boolean getParam_local() {
+    	return this.local;
+    }
+    
+    public boolean getParam_houghSeries() {
+    	return this.houghSeries;
+    }
+    
+    public boolean getParam_showCircles() {
+    	return this.showCircles;
+    }
+    
+    public boolean getParam_showRadius() {
+    	return this.showRadius;
+    }
+    
+    public boolean getParam_showScores() {
+    	return this.showScores;
+    }
+    
+    public boolean getParam_results() {
+    	return this.results;
+    }
+    
 }
