@@ -802,6 +802,7 @@ public class Hough_GUI implements PlugInFilter{
     //This helps ensure variables stay local to their classes, unless emplicitly called by another class:
     //http://stackoverflow.com/questions/1022880/accessing-a-variable-from-another-class
     public int getParam_radiusMin() {
+        IJ.log("--" + radiusMin);
         return this.radiusMin;
     }
     

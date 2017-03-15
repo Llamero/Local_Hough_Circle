@@ -36,7 +36,7 @@ import java.util.Arrays;
  *
  * @author Ben
  */
-public class Hough_Circle extends SwingWorker<Integer, String> {
+public class Hough_Circle extends SwingWorker<Integer, String>{
     
     private int radiusMin;  // Find circles with radius grater or equal radiusMin - argument syntax: "min=#"
     private int radiusMax;  // Find circles with radius less or equal radiusMax - argument syntax: "max=#"
@@ -150,11 +150,9 @@ IJ.log("I am in the analysis class.");
         //Initialize variables
         nCircles = 0;
         circleIDcounter = 0;
-
-IJ.log("I am doing a transform.");
-        
+IJ.log("I am doing a transform." + radiusMax);
         //Calculate Hough parameters
-        depth = ((radiusMax-radiusMin)/radiusInc)+1;
+        this.depth = ((this.radiusMax-this.radiusMin)/this.radiusInc)+1;
         
         //If radiusInc is not a divisor of radiusMax-radiusMin, return error
         if((radiusMax-radiusMin)%radiusInc != 0){
@@ -165,8 +163,9 @@ IJ.log("I am doing a transform.");
         
         //Build the transform LUT (all necessary translations in Cartesian coordinates)
         //NOTE: This step must precede the calculatation of the threshold, as it can change the resolution from the original input value
+IJ.log("Hi");  
         lutSize = buildLookUpTable();
-        
+IJ.log("Hi2");          
         //Calculate the threshold based off the the actual resolution
         threshold = (int) Math.round(thresholdRatio * resolution);
         
@@ -205,7 +204,8 @@ IJ.log("I am doing a transform.");
         width = r.width;
         height = r.height;
         fullWidth = stack.getWidth();
-        fullHeight = stack.getHeight();
+        fullHeight = stack.getHeight();      
+IJ.log("There are " + WindowManager.getNonImageWindows().length + " windows and " + WindowManager.getImageCount() + " images!");
 
         //Convert the stack to float (allows 8, 16, and 32 stacks to all be processed as one type)
         ImageStack stackCopy = stack.duplicate();
