@@ -111,33 +111,36 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     // </editor-fold>
     
    
-
+    //Import values from GUI class before starting the analysis thread
+    public void setParameters(int radiusMin, int radiusMax, int radiusInc, int minCircles, int maxCircles, double thresholdRatio, int resolution, double ratio, int searchBand, 
+                int searchRadius, boolean reduce, boolean local, boolean houghSeries, boolean showCircles, boolean showRadius, boolean showScores, boolean results){
+        
+        this.radiusMin = radiusMin;
+        this.radiusMax = radiusMax;
+        this.radiusInc = radiusInc;
+        this.minCircles = minCircles;
+        this.maxCircles = maxCircles;
+        this.thresholdRatio = thresholdRatio;
+        this.resolution = resolution;
+        this.ratio = ratio;
+        this.searchBand = searchBand;
+        this.searchRadius = searchRadius;
+        this.reduce = reduce;
+        this.local = local;
+        this.houghSeries = houghSeries;
+        this.showCircles = showCircles;
+        this.showRadius = showRadius;
+        this.showScores = showScores;
+        this.results = results;
+IJ.log("Varible passed:" + this.radiusMin); 
+    }
+    
     @Override
      protected Integer doInBackground() throws Exception{
-        Hough_GUI parameters = new Hough_GUI();
-        this.radiusMin = parameters.getParam_radiusMin();
-        this.radiusMax = parameters.getParam_radiusMax();
-        this.radiusInc = parameters.getParam_radiusInc();
-        this.minCircles = parameters.getParam_minCircles();
-        this.maxCircles = parameters.getParam_maxCircles();
-        this.threshold = parameters.getParam_threshold();
-        this.thresholdRatio = parameters.getParam_thresholdRatio();
-        this.resolution = parameters.getParam_resolution();
-        this.ratio = parameters.getParam_ratio();
-        this.searchBand = parameters.getParam_searchBand();
-        this.searchRadius = parameters.getParam_searchRadius();
-        this.reduce = parameters.getParam_reduce();
-        this.local = parameters.getParam_local();
-        this.houghSeries = parameters.getParam_houghSeries();
-        this.showCircles = parameters.getParam_showCircles();
-        this.showRadius = parameters.getParam_showRadius();
-        this.showScores = parameters.getParam_showScores();
-        this.results = parameters.getParam_results(); 
-IJ.log("I am in the analysis class.");
-
+IJ.log("Varible in bkgnd thread:" + radiusMin); 
         startTransform();
-        return 0;
-    }
+        return 100; 
+     }
     
     public void startTransform(){
         //Initialize the results table
@@ -152,7 +155,7 @@ IJ.log("I am in the analysis class.");
         circleIDcounter = 0;
 IJ.log("I am doing a transform." + radiusMax);
         //Calculate Hough parameters
-        this.depth = ((this.radiusMax-this.radiusMin)/this.radiusInc)+1;
+        depth = ((radiusMax-radiusMin)/radiusInc)+1;
         
         //If radiusInc is not a divisor of radiusMax-radiusMin, return error
         if((radiusMax-radiusMin)%radiusInc != 0){

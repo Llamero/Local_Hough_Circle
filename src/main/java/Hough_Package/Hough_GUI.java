@@ -32,6 +32,43 @@ import javax.swing.JTextField;
 public class Hough_GUI implements PlugInFilter{
     //***GUI input variables***
     // <editor-fold desc="Initialize variables">
+    final JLabel guiTitle = new javax.swing.JLabel();
+    final JLabel guiIntro1 = new javax.swing.JLabel();
+    final JLabel guiIntro2 = new javax.swing.JLabel();
+    final JRadioButton guiEasyModeButton = new javax.swing.JRadioButton();
+    final JRadioButton guiAdvancedModeButton = new javax.swing.JRadioButton();
+    final ButtonGroup modeButtonGroup = new javax.swing.ButtonGroup();
+    final JLabel guiSearchLabel = new javax.swing.JLabel();
+    final JLabel guiMinLabel = new javax.swing.JLabel();
+    final JTextField guiMinText = new javax.swing.JTextField();
+    final JLabel guiMaxLabel = new javax.swing.JLabel();
+    final JTextField guiMaxText = new javax.swing.JTextField();
+    final JLabel guiIncLabel = new javax.swing.JLabel();
+    final JTextField guiIncText = new javax.swing.JTextField();
+    final JLabel  guiMinNumLabel = new javax.swing.JLabel();
+    final JTextField guiMinNumText = new javax.swing.JTextField();
+    final JLabel guiMaxNumLabel = new javax.swing.JLabel();
+    final JTextField guiMaxNumText = new javax.swing.JTextField();       
+    final JLabel guiThreshLabel = new javax.swing.JLabel();
+    final JTextField guiThreshText = new javax.swing.JTextField();
+    final JLabel guiResLabel = new javax.swing.JLabel();
+    final JTextField guiResText = new javax.swing.JTextField();
+    final JLabel guiClearLabel = new javax.swing.JLabel();
+    final JTextField guiClearText = new javax.swing.JTextField();
+    final JLabel guiRadiusBandLabel = new javax.swing.JLabel();
+    final JTextField guiRadiusBandText = new javax.swing.JTextField();
+    final JLabel guiSearchRadLabel = new javax.swing.JLabel();
+    final JTextField guiSearchRadText = new javax.swing.JTextField();
+    final JCheckBox guiReduceBox = new javax.swing.JCheckBox();
+    final JCheckBox guiLocalBox = new javax.swing.JCheckBox();
+    final JLabel guiOutputLabel = new javax.swing.JLabel();
+    final JCheckBox guiRawBox = new javax.swing.JCheckBox();
+    final JCheckBox guiPointBox = new javax.swing.JCheckBox();
+    final JCheckBox guiRadiusBox = new javax.swing.JCheckBox();
+    final JCheckBox guiHoughBox = new javax.swing.JCheckBox();
+    final JCheckBox guiResultsBox = new javax.swing.JCheckBox();
+    final JButton guiOKButton = new javax.swing.JButton();
+    
     //Search parameters
     private int radiusMin; // Find circles with radius grater or equal radiusMin - argument syntax: "min=#"
     private int radiusMax; // Find circles with radius less or equal radiusMax - argument syntax: "max=#"
@@ -96,63 +133,63 @@ public class Hough_GUI implements PlugInFilter{
             for (String argument : arguments) { //passes each argment in the array to the variable "argument"
                 if (argument.matches(".*minRadius.*=.*")) {
                     //Retrieve min radius
-                    this.radiusMin = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
+                    radiusMin = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*maxRadius.*=.*")) {
                     //Retrieve max radius
-                    this.radiusMax = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
+                    radiusMax = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*inc.*=.*")) {
                     //Retrieve radius increment
-                    this.radiusInc = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
+                    radiusInc = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*minCircles.*=.*")) {
                     //Retrieve number of circles
-                    this.minCircles = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
+                    minCircles = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*maxCircles.*=.*")) {
                     //Retrieve number of circles
-                    this.maxCircles = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
+                    maxCircles = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*threshold.*=.*")) {
                     //Retrieve Hough score threshold
                     //Code from: http://www.itgo.me/a/x8683194173055835262/get-float-or-integer-value-from-the-string-in-java
                     Pattern pattern = Pattern.compile("\\d+(?:\\.\\d+)?");// Match int or float
                     Matcher matcher = pattern.matcher(argument);
-                    if(matcher.find()) this.thresholdRatio = Double.parseDouble(matcher.group());
+                    if(matcher.find()) thresholdRatio = Double.parseDouble(matcher.group());
                 }
                 else if (argument.matches(".*resolution.*=.*")) {
                     //Retrieve Hough score threshold
-                    this.resolution = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
+                    resolution = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*ratio.*=.*")) {
                     //Retrieve clearing neighbor radius ratio
                     //Code from: http://www.itgo.me/a/x8683194173055835262/get-float-or-integer-value-from-the-string-in-java
                     Pattern pattern = Pattern.compile("\\d+(?:\\.\\d+)?");// Match int or float
                     Matcher matcher = pattern.matcher(argument);
-                    if(matcher.find()) this.ratio = Double.parseDouble(matcher.group());
+                    if(matcher.find()) ratio = Double.parseDouble(matcher.group());
                 }
                 else if (argument.matches(".*bandwidth.*=.*")) {
                     //Retrieve Hough score threshold
-                    this.searchBand = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
+                    searchBand = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
                 else if (argument.matches(".*local_radius.*=.*")) {
                     //Retrieve Hough score threshold
-                    this.searchRadius = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
+                    searchRadius = Integer.parseInt(argument.replaceAll("\\D+", ""));//Remove all non digits
                 }
 
                 //Retrieve checkbox status
-                if (argument.matches(".*reduce.*")) this.reduce = true;
-                if (argument.matches(".*local_search.*")) this.local = true;
-                if (argument.matches(".*show_raw.*")) this.houghSeries = true;
-                if (argument.matches(".*show_mask.*")) this.showCircles = true;
-                if (argument.matches(".*show_centroids.*")) this.showRadius = true;
-                if (argument.matches(".*show_scores.*")) this.showScores = true;
-                if (argument.matches(".*results_table.*")) this.results = true;
+                if (argument.matches(".*reduce.*")) reduce = true;
+                if (argument.matches(".*local_search.*")) local = true;
+                if (argument.matches(".*show_raw.*")) houghSeries = true;
+                if (argument.matches(".*show_mask.*")) showCircles = true;
+                if (argument.matches(".*show_centroids.*")) showRadius = true;
+                if (argument.matches(".*show_scores.*")) showScores = true;
+                if (argument.matches(".*results_table.*")) results = true;
             }
             
             //Start the Hough Transform
-            //startTransform();
+            startTransform();
           
         }
         // </editor-fold>
@@ -168,44 +205,6 @@ public class Hough_GUI implements PlugInFilter{
 
             //Set the frame to close when the window is closed
             guiFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-            
-            //Initialize Swing GUI components
-            final JLabel guiTitle = new javax.swing.JLabel();
-            final JLabel guiIntro1 = new javax.swing.JLabel();
-            final JLabel guiIntro2 = new javax.swing.JLabel();
-            final JRadioButton guiEasyModeButton = new javax.swing.JRadioButton();
-            final JRadioButton guiAdvancedModeButton = new javax.swing.JRadioButton();
-            final ButtonGroup modeButtonGroup = new javax.swing.ButtonGroup();
-            final JLabel guiSearchLabel = new javax.swing.JLabel();
-            final JLabel guiMinLabel = new javax.swing.JLabel();
-            final JTextField guiMinText = new javax.swing.JTextField();
-            final JLabel guiMaxLabel = new javax.swing.JLabel();
-            final JTextField guiMaxText = new javax.swing.JTextField();
-            final JLabel guiIncLabel = new javax.swing.JLabel();
-            final JTextField guiIncText = new javax.swing.JTextField();
-            final JLabel  guiMinNumLabel = new javax.swing.JLabel();
-            final JTextField guiMinNumText = new javax.swing.JTextField();
-            final JLabel guiMaxNumLabel = new javax.swing.JLabel();
-            final JTextField guiMaxNumText = new javax.swing.JTextField();       
-            final JLabel guiThreshLabel = new javax.swing.JLabel();
-            final JTextField guiThreshText = new javax.swing.JTextField();
-            final JLabel guiResLabel = new javax.swing.JLabel();
-            final JTextField guiResText = new javax.swing.JTextField();
-            final JLabel guiClearLabel = new javax.swing.JLabel();
-            final JTextField guiClearText = new javax.swing.JTextField();
-            final JLabel guiRadiusBandLabel = new javax.swing.JLabel();
-            final JTextField guiRadiusBandText = new javax.swing.JTextField();
-            final JLabel guiSearchRadLabel = new javax.swing.JLabel();
-            final JTextField guiSearchRadText = new javax.swing.JTextField();
-            final JCheckBox guiReduceBox = new javax.swing.JCheckBox();
-            final JCheckBox guiLocalBox = new javax.swing.JCheckBox();
-            final JLabel guiOutputLabel = new javax.swing.JLabel();
-            final JCheckBox guiRawBox = new javax.swing.JCheckBox();
-            final JCheckBox guiPointBox = new javax.swing.JCheckBox();
-            final JCheckBox guiRadiusBox = new javax.swing.JCheckBox();
-            final JCheckBox guiHoughBox = new javax.swing.JCheckBox();
-            final JCheckBox guiResultsBox = new javax.swing.JCheckBox();
-            final JButton guiOKButton = new javax.swing.JButton();
             
             //Format GUI text
             guiTitle.setFont(new java.awt.Font("Tahoma", 0, 24));// NOI18N
@@ -610,43 +609,46 @@ public class Hough_GUI implements PlugInFilter{
                 // </editor-fold>
                 // <editor-fold desc="Retrieve GUI arguments and calculate Hough parameters">
                 //Retrive the numbers from the text boxes and combobox
-                this.radiusMin = Integer.parseInt(guiMinText.getText());
-                this.radiusMax = Integer.parseInt(guiMaxText.getText());
-                this.radiusInc = Integer.parseInt(guiIncText.getText());
-                this.minCircles = Integer.parseInt(guiMinNumText.getText());
-                this.maxCircles = Integer.parseInt(guiMaxNumText.getText());
-                this.thresholdRatio = Double.parseDouble(guiThreshText.getText());
-                this.resolution = Integer.parseInt(guiResText.getText());
-                this.ratio = Double.parseDouble(guiClearText.getText());
-                this.searchBand = Integer.parseInt(guiRadiusBandText.getText());
-                this.searchRadius = Integer.parseInt(guiSearchRadText.getText());
-                this.reduce = guiReduceBox.isSelected();
-                this.local = guiLocalBox.isSelected();
+                radiusMin = Integer.parseInt(guiMinText.getText());
+IJ.log(""+radiusMin);                
+                radiusMax = Integer.parseInt(guiMaxText.getText());
+                radiusInc = Integer.parseInt(guiIncText.getText());
+                minCircles = Integer.parseInt(guiMinNumText.getText());
+                maxCircles = Integer.parseInt(guiMaxNumText.getText());
+                thresholdRatio = Double.parseDouble(guiThreshText.getText());
+                resolution = Integer.parseInt(guiResText.getText());
+                ratio = Double.parseDouble(guiClearText.getText());
+                searchBand = Integer.parseInt(guiRadiusBandText.getText());
+                searchRadius = Integer.parseInt(guiSearchRadText.getText());
+                reduce = guiReduceBox.isSelected();
+                local = guiLocalBox.isSelected();
                 
                 //Retrieve the check box status
-                this.houghSeries = guiRawBox.isSelected();
-                this.showCircles = guiPointBox.isSelected();
-                this.showRadius = guiRadiusBox.isSelected();
-                this.showScores = guiHoughBox.isSelected();
-                this.results = guiResultsBox.isSelected();
+                houghSeries = guiRawBox.isSelected();
+                showCircles = guiPointBox.isSelected();
+                showRadius = guiRadiusBox.isSelected();
+                showScores = guiHoughBox.isSelected();
+                results = guiResultsBox.isSelected();
                 
                 //Override searchBand and searchRad if in local easy mode
                 if(guiEasyModeButton.isSelected() & guiLocalBox.isSelected()){
-                    this.searchRadius = this.radiusMin;
-                    this.searchBand = this.radiusMax-radiusMin;
+                    searchRadius = radiusMin;
+                    searchBand = radiusMax-radiusMin;
                 }
                 
                 //Override impossible inputs
-                if (this.maxCircles > 65535) this.maxCircles = 65535;
-                if (this.minCircles > this.maxCircles) this.minCircles = this.maxCircles;
-                if (this.searchBand < 1) this.searchBand = 1;
-                if (this.searchRadius < 1) this.searchRadius = 1;
+                if (maxCircles > 65535) maxCircles = 65535;
+                if (minCircles > maxCircles) minCircles = maxCircles;
+                if (searchBand < 1) searchBand = 1;
+                if (searchRadius < 1) searchRadius = 1;
                 
                 //Remove the GUI frame now that it is no longer needed
                 //guiFrame.dispose();
                 
-                //Start the Hough Transform
-                new Hough_Circle().execute();
+                startTransform();
+                
+
+IJ.log(""+radiusMin);  
             } //When push button is pushed, retrieve the state of
             );
             // </editor-fold>
@@ -801,77 +803,85 @@ public class Hough_GUI implements PlugInFilter{
     //By leaving the variables private, and instead allowing access of private variables between classes via public functions,
     //This helps ensure variables stay local to their classes, unless emplicitly called by another class:
     //http://stackoverflow.com/questions/1022880/accessing-a-variable-from-another-class
+    void startTransform(){
+        //Start the background transform by sending the GUI variables to the transform
+        Hough_Circle guiInput = new Hough_Circle();
+        guiInput.setParameters(radiusMin, radiusMax, radiusInc, minCircles, maxCircles, thresholdRatio, resolution, ratio, searchBand, 
+                searchRadius, reduce, local, houghSeries, showCircles, showRadius, showScores, results);
+IJ.log("--" + radiusMin);
+        guiInput.execute();
+    }
     public int getParam_radiusMin() {
         IJ.log("--" + radiusMin);
-        return this.radiusMin;
+        return radiusMin;
     }
     
     public int getParam_radiusMax() {
-    	return this.radiusMax;
+    	return radiusMax;
     }
     
     public int getParam_radiusInc() {
-    	return this.radiusInc;
+    	return radiusInc;
     }
     
     public int getParam_minCircles() {
-    	return this.minCircles;
+    	return minCircles;
     }
     
     public int getParam_maxCircles() {
-    	return this.maxCircles;
+    	return maxCircles;
     }
     
     public int getParam_threshold() {
-    	return this.threshold;
+    	return threshold;
     }
     
     public double getParam_thresholdRatio() {
-    	return this.thresholdRatio;
+    	return thresholdRatio;
     }
     
     public int getParam_resolution() {
-    	return this.resolution;
+    	return resolution;
     }
     
     public double getParam_ratio() {
-    	return this.ratio;
+    	return ratio;
     }
     
     public int getParam_searchBand() {
-    	return this.searchBand;
+    	return searchBand;
     }
     
     public int getParam_searchRadius() {
-    	return this.searchRadius;
+    	return searchRadius;
     }
     
     public boolean getParam_reduce() {
-    	return this.reduce;
+    	return reduce;
     }
     
     public boolean getParam_local() {
-    	return this.local;
+    	return local;
     }
     
     public boolean getParam_houghSeries() {
-    	return this.houghSeries;
+    	return houghSeries;
     }
     
     public boolean getParam_showCircles() {
-    	return this.showCircles;
+    	return showCircles;
     }
     
     public boolean getParam_showRadius() {
-    	return this.showRadius;
+    	return showRadius;
     }
     
     public boolean getParam_showScores() {
-    	return this.showScores;
+    	return showScores;
     }
     
     public boolean getParam_results() {
-    	return this.results;
+    	return results;
     }
     
 }
