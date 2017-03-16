@@ -609,8 +609,7 @@ public class Hough_GUI implements PlugInFilter{
                 // </editor-fold>
                 // <editor-fold desc="Retrieve GUI arguments and calculate Hough parameters">
                 //Retrive the numbers from the text boxes and combobox
-                radiusMin = Integer.parseInt(guiMinText.getText());
-IJ.log(""+radiusMin);                
+                radiusMin = Integer.parseInt(guiMinText.getText());              
                 radiusMax = Integer.parseInt(guiMaxText.getText());
                 radiusInc = Integer.parseInt(guiIncText.getText());
                 minCircles = Integer.parseInt(guiMinNumText.getText());
@@ -646,9 +645,7 @@ IJ.log(""+radiusMin);
                 //guiFrame.dispose();
                 
                 startTransform();
-                
-
-IJ.log(""+radiusMin);  
+                  
             } //When push button is pushed, retrieve the state of
             );
             // </editor-fold>
@@ -799,89 +796,15 @@ IJ.log(""+radiusMin);
         }
     }
     
-    //Create public functions that allow other classes to access
-    //By leaving the variables private, and instead allowing access of private variables between classes via public functions,
-    //This helps ensure variables stay local to their classes, unless emplicitly called by another class:
-    //http://stackoverflow.com/questions/1022880/accessing-a-variable-from-another-class
+    //Send the GUI values to the analysis class, and then run the analysis on a separate thread
     void startTransform(){
+        
         //Start the background transform by sending the GUI variables to the transform
         Hough_Circle guiInput = new Hough_Circle();
         guiInput.setParameters(radiusMin, radiusMax, radiusInc, minCircles, maxCircles, thresholdRatio, resolution, ratio, searchBand, 
                 searchRadius, reduce, local, houghSeries, showCircles, showRadius, showScores, results);
-IJ.log("--" + radiusMin);
+
+        //Start the analysis on a separate thread so the GUI stays free.
         guiInput.execute();
-    }
-    public int getParam_radiusMin() {
-        IJ.log("--" + radiusMin);
-        return radiusMin;
-    }
-    
-    public int getParam_radiusMax() {
-    	return radiusMax;
-    }
-    
-    public int getParam_radiusInc() {
-    	return radiusInc;
-    }
-    
-    public int getParam_minCircles() {
-    	return minCircles;
-    }
-    
-    public int getParam_maxCircles() {
-    	return maxCircles;
-    }
-    
-    public int getParam_threshold() {
-    	return threshold;
-    }
-    
-    public double getParam_thresholdRatio() {
-    	return thresholdRatio;
-    }
-    
-    public int getParam_resolution() {
-    	return resolution;
-    }
-    
-    public double getParam_ratio() {
-    	return ratio;
-    }
-    
-    public int getParam_searchBand() {
-    	return searchBand;
-    }
-    
-    public int getParam_searchRadius() {
-    	return searchRadius;
-    }
-    
-    public boolean getParam_reduce() {
-    	return reduce;
-    }
-    
-    public boolean getParam_local() {
-    	return local;
-    }
-    
-    public boolean getParam_houghSeries() {
-    	return houghSeries;
-    }
-    
-    public boolean getParam_showCircles() {
-    	return showCircles;
-    }
-    
-    public boolean getParam_showRadius() {
-    	return showRadius;
-    }
-    
-    public boolean getParam_showScores() {
-    	return showScores;
-    }
-    
-    public boolean getParam_results() {
-    	return results;
-    }
-    
+    }    
 }

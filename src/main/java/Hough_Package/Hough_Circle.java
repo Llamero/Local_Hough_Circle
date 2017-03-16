@@ -132,12 +132,11 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
         this.showRadius = showRadius;
         this.showScores = showScores;
         this.results = results;
-IJ.log("Varible passed:" + this.radiusMin); 
     }
     
     @Override
-     protected Integer doInBackground() throws Exception{
-IJ.log("Varible in bkgnd thread:" + radiusMin); 
+    //Start the Hough transform on a separate thread from the GUI
+    protected Integer doInBackground() throws Exception{ 
         startTransform();
         return 100; 
      }
@@ -153,7 +152,7 @@ IJ.log("Varible in bkgnd thread:" + radiusMin);
         //Initialize variables
         nCircles = 0;
         circleIDcounter = 0;
-IJ.log("I am doing a transform." + radiusMax);
+        
         //Calculate Hough parameters
         depth = ((radiusMax-radiusMin)/radiusInc)+1;
         
@@ -165,10 +164,9 @@ IJ.log("I am doing a transform." + radiusMax);
         }
         
         //Build the transform LUT (all necessary translations in Cartesian coordinates)
-        //NOTE: This step must precede the calculatation of the threshold, as it can change the resolution from the original input value
-IJ.log("Hi");  
+        //NOTE: This step must precede the calculatation of the threshold, as it can change the resolution from the original input value 
         lutSize = buildLookUpTable();
-IJ.log("Hi2");          
+          
         //Calculate the threshold based off the the actual resolution
         threshold = (int) Math.round(thresholdRatio * resolution);
         
@@ -208,7 +206,6 @@ IJ.log("Hi2");
         height = r.height;
         fullWidth = stack.getWidth();
         fullHeight = stack.getHeight();      
-IJ.log("There are " + WindowManager.getNonImageWindows().length + " windows and " + WindowManager.getImageCount() + " images!");
 
         //Convert the stack to float (allows 8, 16, and 32 stacks to all be processed as one type)
         ImageStack stackCopy = stack.duplicate();
@@ -261,6 +258,8 @@ IJ.log("There are " + WindowManager.getNonImageWindows().length + " windows and 
             if(isStack){
                if((System.currentTimeMillis() - startTime) > 500){
                    IJ.showStatus("Hough tranform - processing frame: " + slice + " of " + stackSlices + "");
+                   
+                   IJ.showProgress(slice, stackSlices);
                    
                    //Reset timer
                    startTime = System.currentTimeMillis();
@@ -355,7 +354,7 @@ IJ.log("There are " + WindowManager.getNonImageWindows().length + " windows and 
             if (results) resultsTable(slice);
             
         }
-IJ.log("" + totalTime);
+//IJ.log("" + totalTime);
         //Draw the resulting stacks
          if(houghSeries){
             houghPlus = new ImagePlus("Hough Transform Series", houghStack);
@@ -367,7 +366,7 @@ IJ.log("" + totalTime);
          if(showScores) new ImagePlus("Score map", scoreStack).show(); 
          if(results) rt.show("Results");
          
-         IJ.log("Hough transform complete!");
+         IJ.showProgress(0);
     }
     
     //OPTMIZED
