@@ -710,9 +710,9 @@ public class Hough_GUI implements PlugInFilter {
         guiHoughBox.setVisible(false);
 
         guiMaxNumText.setText("65535");
-        guiHoughBox.setVisible(false);
-        guiRadiusBox.setVisible(false); 
-        guiRawBox.setVisible(false);
+        guiHoughBox.setSelected(false);
+        guiRadiusBox.setSelected(false); 
+        guiRawBox.setSelected(false);
         guiFrame.pack();
     }
     void easyLocalGUI(){
@@ -742,9 +742,9 @@ public class Hough_GUI implements PlugInFilter {
         guiRadiusBox.setVisible(false);
         guiHoughBox.setVisible(false);
 
-        guiHoughBox.setVisible(false);
-        guiRadiusBox.setVisible(false); 
-        guiRawBox.setVisible(false);
+        guiHoughBox.setSelected(false);
+        guiRadiusBox.setSelected(false); 
+        guiRawBox.setSelected(false);
         guiMaxNumText.setText("10");
         guiMinNumText.setText("65535");
         guiFrame.pack();

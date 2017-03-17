@@ -761,10 +761,13 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                             int lradiusMin = localHoughParameters[circleNum][6];
                             int lradiusMax = localHoughParameters[circleNum][7];
                             int ldepth = localHoughParameters[circleNum][8];
+                            int index = 0;
+                            int maxIndex = width * height;
                             for(int h=0; h<lheight; h++){    
                                 for(int w=0; w<lwidth; w++){
                                     for(int i=0; i<ldepth; i++){
-                                       localHoughPixels[i+(lradiusMin-radiusMin)/radiusInc][(w+startWidth)+(h+startHeight)*width] = (byte) Math.round ((localHoughValues[circleNum][w][h][i] * 255D) / maxHough);
+                                       index = (w+startWidth)+(h+startHeight)*width; 
+                                       if(index < maxIndex) localHoughPixels[i+(lradiusMin-radiusMin)/radiusInc][index] = (byte) Math.round ((localHoughValues[circleNum][w][h][i] * 255D) / maxHough);
                                     }
                                 }
                             }
