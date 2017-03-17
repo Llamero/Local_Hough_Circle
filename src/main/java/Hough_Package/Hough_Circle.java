@@ -31,6 +31,7 @@ import javax.swing.*;
 import ij.measure.ResultsTable;
 import ij.plugin.filter.Analyzer;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -58,9 +59,11 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     private boolean showRadius = false; //Contains whether the user wants a map of centroids and radii outputed from search - argument syntax: "show_centroids"
     private boolean showScores = false; //Contains whether the user wants a map of centroids and Hough scores outputed from search - argument syntax: "show_scores"
     private boolean results = false; //Contains whether the user wants to export the measurements to a reuslts table 
+    
+    private String currentStatus = ""; //String for outputting current status
             
     //Hough transform variables
-    public ImagePlus imp; //Initalize the variable to hold the image
+    private ImagePlus imp; //Initalize the variable to hold the image
     private boolean isStack = false; //True if there is more than one slice in the input data
     private int stackSlices; //number of slices in the stack
     private int maxHough; //Contains the brights pixel in the entire Hough array
@@ -90,18 +93,18 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     private boolean localSearch = false; //Record whether a local-only search was done for the frame
     
     //Variables for storing the results and exporting result images
-    public ImagePlus houghPlus;
-    public ImageStack houghStack;
-    public ImagePlus circlePlus;
-    public ImageStack circleStack;
-    public ImagePlus radiusPlus;
-    public ImageStack radiusStack;
-    public ImagePlus scorePlus;
-    public ImageStack scoreStack;
-    public ImageProcessor circlesip;
-    public ImageProcessor radiusip;
-    public ImageProcessor scoresip;
-    public ResultsTable rt; 
+    private ImagePlus houghPlus;
+    private ImageStack houghStack;
+    private ImagePlus circlePlus;
+    private ImageStack circleStack;
+    private ImagePlus radiusPlus;
+    private ImageStack radiusStack;
+    private ImagePlus scorePlus;
+    private ImageStack scoreStack;
+    private ImageProcessor circlesip;
+    private ImageProcessor radiusip;
+    private ImageProcessor scoresip;
+    private ResultsTable rt; 
     private String method;
     
     //Variables for max Hough score search
@@ -261,7 +264,10 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                    
                    IJ.showProgress(slice, stackSlices);
                    
+                   //Update GUI progress bar
+                   publish("Processing frame: " + slice + " of " + stackSlices + "");
                    setProgress(Math.round(100*slice/stackSlices));
+                   
                    //Reset timer
                    startTime = System.currentTimeMillis();
                }
@@ -1226,5 +1232,13 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
         {  
             throw new RuntimeException(ie);  
         }  
-    } 
+    }
+    
+    protected void process(List<String> status) {
+      currentStatus = status.get(status.size()-1);
+   }
+    
+   public String getStatus(){
+       return currentStatus;
+   }
 }

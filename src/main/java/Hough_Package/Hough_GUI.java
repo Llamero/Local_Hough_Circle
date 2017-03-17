@@ -14,8 +14,10 @@ import static ij.plugin.filter.PlugInFilter.DOES_8G;
 import static ij.plugin.filter.PlugInFilter.DONE;
 import static ij.plugin.filter.PlugInFilter.SUPPORTS_MASKING;
 import ij.process.ImageProcessor;
+import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.ButtonGroup;
@@ -28,6 +30,8 @@ import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker.StateValue;
+import javax.swing.UIManager;
+import javax.swing.plaf.basic.BasicProgressBarUI;
 
 /**
  *
@@ -36,45 +40,46 @@ import javax.swing.SwingWorker.StateValue;
 public class Hough_GUI implements PlugInFilter {
     //***GUI input variables***
     // <editor-fold desc="Initialize variables">  
-    final JPanel guiPanel = new JPanel(); //Initialize a panel (needed to house a frame)
-    final JFrame guiFrame = new JFrame();    //Initlialize a frame to hold the gui
-    final JLabel guiTitle = new javax.swing.JLabel();
-    final JLabel guiIntro1 = new javax.swing.JLabel();
-    final JLabel guiIntro2 = new javax.swing.JLabel();
-    final JRadioButton guiEasyModeButton = new javax.swing.JRadioButton();
-    final JRadioButton guiAdvancedModeButton = new javax.swing.JRadioButton();
-    final ButtonGroup modeButtonGroup = new javax.swing.ButtonGroup();
-    final JLabel guiSearchLabel = new javax.swing.JLabel();
-    final JLabel guiMinLabel = new javax.swing.JLabel();
-    final JTextField guiMinText = new javax.swing.JTextField();
-    final JLabel guiMaxLabel = new javax.swing.JLabel();
-    final JTextField guiMaxText = new javax.swing.JTextField();
-    final JLabel guiIncLabel = new javax.swing.JLabel();
-    final JTextField guiIncText = new javax.swing.JTextField();
-    final JLabel  guiMinNumLabel = new javax.swing.JLabel();
-    final JTextField guiMinNumText = new javax.swing.JTextField();
-    final JLabel guiMaxNumLabel = new javax.swing.JLabel();
-    final JTextField guiMaxNumText = new javax.swing.JTextField();       
-    final JLabel guiThreshLabel = new javax.swing.JLabel();
-    final JTextField guiThreshText = new javax.swing.JTextField();
-    final JLabel guiResLabel = new javax.swing.JLabel();
-    final JTextField guiResText = new javax.swing.JTextField();
-    final JLabel guiClearLabel = new javax.swing.JLabel();
-    final JTextField guiClearText = new javax.swing.JTextField();
-    final JLabel guiRadiusBandLabel = new javax.swing.JLabel();
-    final JTextField guiRadiusBandText = new javax.swing.JTextField();
-    final JLabel guiSearchRadLabel = new javax.swing.JLabel();
-    final JTextField guiSearchRadText = new javax.swing.JTextField();
-    final JCheckBox guiReduceBox = new javax.swing.JCheckBox();
-    final JCheckBox guiLocalBox = new javax.swing.JCheckBox();
-    final JLabel guiOutputLabel = new javax.swing.JLabel();
-    final JCheckBox guiRawBox = new javax.swing.JCheckBox();
-    final JCheckBox guiPointBox = new javax.swing.JCheckBox();
-    final JCheckBox guiRadiusBox = new javax.swing.JCheckBox();
-    final JCheckBox guiHoughBox = new javax.swing.JCheckBox();
-    final JCheckBox guiResultsBox = new javax.swing.JCheckBox();
-    final JProgressBar guiProgressBar = new javax.swing.JProgressBar();
-    final JButton guiOKButton = new javax.swing.JButton();
+    final private JPanel guiPanel = new JPanel(); //Initialize a panel (needed to house a frame)
+    final private JFrame guiFrame = new JFrame();    //Initlialize a frame to hold the gui
+    final private JLabel guiTitle = new javax.swing.JLabel();
+    final private JLabel guiIntro1 = new javax.swing.JLabel();
+    final private JLabel guiIntro2 = new javax.swing.JLabel();
+    final private JRadioButton guiEasyModeButton = new javax.swing.JRadioButton();
+    final private JRadioButton guiAdvancedModeButton = new javax.swing.JRadioButton();
+    final private ButtonGroup modeButtonGroup = new javax.swing.ButtonGroup();
+    final private JLabel guiSearchLabel = new javax.swing.JLabel();
+    final private JLabel guiMinLabel = new javax.swing.JLabel();
+    final private JTextField guiMinText = new javax.swing.JTextField();
+    final private JLabel guiMaxLabel = new javax.swing.JLabel();
+    final private JTextField guiMaxText = new javax.swing.JTextField();
+    final private JLabel guiIncLabel = new javax.swing.JLabel();
+    final private JTextField guiIncText = new javax.swing.JTextField();
+    final private JLabel  guiMinNumLabel = new javax.swing.JLabel();
+    final private JTextField guiMinNumText = new javax.swing.JTextField();
+    final private JLabel guiMaxNumLabel = new javax.swing.JLabel();
+    final private JTextField guiMaxNumText = new javax.swing.JTextField();       
+    final private JLabel guiThreshLabel = new javax.swing.JLabel();
+    final private JTextField guiThreshText = new javax.swing.JTextField();
+    final private JLabel guiResLabel = new javax.swing.JLabel();
+    final private JTextField guiResText = new javax.swing.JTextField();
+    final private JLabel guiClearLabel = new javax.swing.JLabel();
+    final private JTextField guiClearText = new javax.swing.JTextField();
+    final private JLabel guiRadiusBandLabel = new javax.swing.JLabel();
+    final private JTextField guiRadiusBandText = new javax.swing.JTextField();
+    final private JLabel guiSearchRadLabel = new javax.swing.JLabel();
+    final private JTextField guiSearchRadText = new javax.swing.JTextField();
+    final private JCheckBox guiReduceBox = new javax.swing.JCheckBox();
+    final private JCheckBox guiLocalBox = new javax.swing.JCheckBox();
+    final private JLabel guiOutputLabel = new javax.swing.JLabel();
+    final private JCheckBox guiRawBox = new javax.swing.JCheckBox();
+    final private JCheckBox guiPointBox = new javax.swing.JCheckBox();
+    final private JCheckBox guiRadiusBox = new javax.swing.JCheckBox();
+    final private JCheckBox guiHoughBox = new javax.swing.JCheckBox();
+    final private JCheckBox guiResultsBox = new javax.swing.JCheckBox();
+    private JProgressBar guiProgressBar; //Do not initialize so that color of font can be changed
+    final private JButton guiOKButton = new javax.swing.JButton();
+    private String barString = ""; 
     
     //Search parameters
     private int radiusMin; // Find circles with radius grater or equal radiusMin - argument syntax: "min=#"
@@ -82,7 +87,6 @@ public class Hough_GUI implements PlugInFilter {
     private int radiusInc; // Increment used to go from radiusMin to radiusMax - argument syntax: "inc=#"
     private int minCircles;// Minumum number of circles to be found - argument syntax: "minCircles=#"    
     private int maxCircles;// Maximum number of circles to be found - argument syntax: "maxCircles=#"
-    private int threshold = -1;// An alternative to maxCircles. All circles with a value in the hough space greater then threshold are marked. Higher thresholds result in fewer circles. - argument syntax: "threshold=#"
     private double thresholdRatio;//Ratio input from GUI that expresses threshold as ratio of resolution (highest possible # of votes)
     private int resolution;//The number of steps to use per transform (i.e. number of voting rounds)
     private double ratio;// Ratio of found circle radius to clear out surrounding neighbors
@@ -100,10 +104,12 @@ public class Hough_GUI implements PlugInFilter {
     
     //Keep track of whether analysis has started, and update GUI accordingly
     private boolean analysisStarted = false;
+    private List<String> status;
     
     //Start instance of analysis class
     Hough_Circle guiInput;
     
+    @Override
     public int setup(String arg, ImagePlus imp) {        
         
         if (arg.equals("about")) {
@@ -126,6 +132,7 @@ public class Hough_GUI implements PlugInFilter {
                       );
     }
     
+    @Override
     public void run(ImageProcessor ip) {
         //Show a Dialog Window for user input of parameters
         readParameters();
@@ -390,10 +397,17 @@ public class Hough_GUI implements PlugInFilter {
             guiResultsBox.setSelected(true);
             guiResultsBox.setText("Export measurements to the results table");
             
+            //UIManager.put("ProgressBar.background", Color.ORANGE); //Bar background color
+            //UIManager.put("ProgressBar.foreground", Color.BLUE); //Bar color
+            UIManager.put("ProgressBar.selectionBackground", Color.BLACK); //Font color above background
+            UIManager.put("ProgressBar.selectionForeground", Color.BLACK); //Font color above bar
+            guiProgressBar = new javax.swing.JProgressBar();
             guiProgressBar.setFont(new java.awt.Font("Courier New", 0, 11)); // NOI18N
             guiProgressBar.setVisible(false);
             guiProgressBar.setMaximum(100);
             guiProgressBar.setMinimum(0);
+            guiProgressBar.setStringPainted(true); //Allow string to be written on progress bar
+
 
             guiOKButton.setText("OK");
             guiOKButton.addActionListener((java.awt.event.ActionEvent evt) -> { 
@@ -615,22 +629,40 @@ public class Hough_GUI implements PlugInFilter {
     
     //Send the GUI values to the analysis class, and then run the analysis on a separate thread
     void startTransform(){
+        //Create and instance of the analysis class
         guiInput = new Hough_Circle();
+        
+        //Add an action listener to the status to allow for GUI to be updated
         guiInput.addPropertyChangeListener((final PropertyChangeEvent event) -> {
             switch (event.getPropertyName()) {
+                
+                //If event has progress flag, update progress bar
                 case "progress":
+                    barString = guiInput.getStatus();
                     guiProgressBar.setIndeterminate(false);
-                    guiProgressBar.setValue((Integer) event.getNewValue());
+                    guiProgressBar.setValue((Integer) event.getNewValue()); 
+                    guiProgressBar.setString(barString);
                     break;
+                    
+                //if event has state flag, it indicates thread completion status
                 case "state":
                     switch ((StateValue) event.getNewValue()) {
+                        
+                        //If worker thread is done, then clear out progress indicators and set button to "OK"
                         case DONE:
+                            IJ.showProgress(0);
                             guiProgressBar.setVisible(false);
                             guiOKButton.setText("OK");
+                            analysisStarted = false;
+                            IJ.showStatus("Analysis complete...");
                             break;
+                            
+                        //If worker has just started, set progress to indetertminate, to let user know plugin is active
                         case STARTED:
                             guiProgressBar.setVisible(true);
                             guiProgressBar.setIndeterminate(true);
+                            guiProgressBar.setString("Starting Transform...");
+                            break;
                         case PENDING:
                             guiProgressBar.setVisible(true);
                             guiProgressBar.setIndeterminate(true);
@@ -640,8 +672,6 @@ public class Hough_GUI implements PlugInFilter {
             }
         });
 
-            
-        
         //Start the background transform by sending the GUI variables to the transform
         guiInput.setParameters(radiusMin, radiusMax, radiusInc, minCircles, maxCircles, thresholdRatio, resolution, ratio, searchBand, 
                 searchRadius, reduce, local, houghSeries, showCircles, showRadius, showScores, results);
@@ -649,6 +679,8 @@ public class Hough_GUI implements PlugInFilter {
         //Start the analysis on a separate thread so the GUI stays free.
         guiInput.execute();
     }
+    
+
     
     void easyFullGUI(){
         guiTitle.setText("Hough Circle Transform");
