@@ -14,6 +14,8 @@ import static ij.plugin.filter.PlugInFilter.DOES_8G;
 import static ij.plugin.filter.PlugInFilter.DONE;
 import static ij.plugin.filter.PlugInFilter.SUPPORTS_MASKING;
 import ij.process.ImageProcessor;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.ButtonGroup;
@@ -25,12 +27,13 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.SwingWorker.StateValue;
 
 /**
  *
  * @author Ben
  */
-public class Hough_GUI implements PlugInFilter{
+public class Hough_GUI implements PlugInFilter {
     //***GUI input variables***
     // <editor-fold desc="Initialize variables">  
     final JPanel guiPanel = new JPanel(); //Initialize a panel (needed to house a frame)
@@ -99,7 +102,7 @@ public class Hough_GUI implements PlugInFilter{
     private boolean analysisStarted = false;
     
     //Start instance of analysis class
-    Hough_Circle guiInput = new Hough_Circle();
+    Hough_Circle guiInput;
     
     public int setup(String arg, ImagePlus imp) {        
         
@@ -389,6 +392,8 @@ public class Hough_GUI implements PlugInFilter{
             
             guiProgressBar.setFont(new java.awt.Font("Courier New", 0, 11)); // NOI18N
             guiProgressBar.setVisible(false);
+            guiProgressBar.setMaximum(100);
+            guiProgressBar.setMinimum(0);
 
             guiOKButton.setText("OK");
             guiOKButton.addActionListener((java.awt.event.ActionEvent evt) -> { 
@@ -610,6 +615,33 @@ public class Hough_GUI implements PlugInFilter{
     
     //Send the GUI values to the analysis class, and then run the analysis on a separate thread
     void startTransform(){
+        guiInput = new Hough_Circle();
+        guiInput.addPropertyChangeListener((final PropertyChangeEvent event) -> {
+            switch (event.getPropertyName()) {
+                case "progress":
+                    guiProgressBar.setIndeterminate(false);
+                    guiProgressBar.setValue((Integer) event.getNewValue());
+                    break;
+                case "state":
+                    switch ((StateValue) event.getNewValue()) {
+                        case DONE:
+                            guiProgressBar.setVisible(false);
+                            guiOKButton.setText("OK");
+                            break;
+                        case STARTED:
+                            guiProgressBar.setVisible(true);
+                            guiProgressBar.setIndeterminate(true);
+                        case PENDING:
+                            guiProgressBar.setVisible(true);
+                            guiProgressBar.setIndeterminate(true);
+                            break;
+                    }
+                    break;
+            }
+        });
+
+            
+        
         //Start the background transform by sending the GUI variables to the transform
         guiInput.setParameters(radiusMin, radiusMax, radiusInc, minCircles, maxCircles, thresholdRatio, resolution, ratio, searchBand, 
                 searchRadius, reduce, local, houghSeries, showCircles, showRadius, showScores, results);

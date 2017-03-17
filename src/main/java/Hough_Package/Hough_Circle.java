@@ -261,6 +261,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                    
                    IJ.showProgress(slice, stackSlices);
                    
+                   setProgress(Math.round(100*slice/stackSlices));
                    //Reset timer
                    startTime = System.currentTimeMillis();
                }
