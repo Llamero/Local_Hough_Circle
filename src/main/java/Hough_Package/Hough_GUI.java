@@ -32,7 +32,9 @@ import javax.swing.JTextField;
  */
 public class Hough_GUI implements PlugInFilter{
     //***GUI input variables***
-    // <editor-fold desc="Initialize variables">
+    // <editor-fold desc="Initialize variables">  
+    final JPanel guiPanel = new JPanel(); //Initialize a panel (needed to house a frame)
+    final JFrame guiFrame = new JFrame();    //Initlialize a frame to hold the gui
     final JLabel guiTitle = new javax.swing.JLabel();
     final JLabel guiIntro1 = new javax.swing.JLabel();
     final JLabel guiIntro2 = new javax.swing.JLabel();
@@ -205,12 +207,6 @@ public class Hough_GUI implements PlugInFilter{
         else{
             // <editor-fold desc="Swing GUI part 1.">
             //***Build GUI using Swing***
-            //Initialize a panel (needed to house a frame)
-            final JPanel guiPanel = new JPanel();
-
-            //Initlialize a frame to hold the gui
-            final JFrame guiFrame = new JFrame();
-
             //Set the frame to close when the window is closed
             guiFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
             
@@ -231,67 +227,11 @@ public class Hough_GUI implements PlugInFilter{
             guiEasyModeButton.addActionListener((java.awt.event.ActionEvent evt) -> {
                 //Setup local easy GUI
                 if (guiLocalBox.isSelected()){
-                    guiTitle.setText("Local Hough Circle Transform");
-                    guiMinLabel.setVisible(true);
-                    guiMinText.setVisible(true);
-                    guiMaxLabel.setVisible(true);
-                    guiMaxText.setVisible(true);
-                    guiIncLabel.setVisible(false);
-                    guiIncText.setVisible(false);
-                    guiMinNumLabel.setVisible(false);
-                    guiMinNumText.setVisible(false);
-                    guiMaxNumLabel.setVisible(true);
-                    guiMaxNumText.setVisible(true);
-                    guiThreshLabel.setVisible(true);
-                    guiThreshText.setVisible(true);
-                    guiResLabel.setVisible(false);
-                    guiResText.setVisible(false);
-                    guiClearLabel.setVisible(false);
-                    guiClearText.setVisible(false);
-                    guiRadiusBandLabel.setVisible(false);
-                    guiRadiusBandText.setVisible(false);
-                    guiSearchRadLabel.setVisible(false);
-                    guiSearchRadText.setVisible(false);
-                    guiReduceBox.setVisible(false);
-                    guiRawBox.setVisible(false);
-                    guiRadiusBox.setVisible(false);
-                    guiHoughBox.setVisible(false);
-                    
-                    guiMaxNumText.setText("10");
-                    guiMinNumText.setText("65535");
-                    guiFrame.pack();
-                    
+                    easyLocalGUI();
                 }
                 //Setup full easy GUI
                 else{
-                    guiTitle.setText("Hough Circle Transform");
-                    guiMinLabel.setVisible(true);
-                    guiMinText.setVisible(true);
-                    guiMaxLabel.setVisible(true);
-                    guiMaxText.setVisible(true);
-                    guiIncLabel.setVisible(false);
-                    guiIncText.setVisible(false);
-                    guiMinNumLabel.setVisible(false);
-                    guiMinNumText.setVisible(false);
-                    guiMaxNumLabel.setVisible(false);
-                    guiMaxNumText.setVisible(false);
-                    guiThreshLabel.setVisible(true);
-                    guiThreshText.setVisible(true);
-                    guiResLabel.setVisible(false);
-                    guiResText.setVisible(false);
-                    guiClearLabel.setVisible(false);
-                    guiClearText.setVisible(false);
-                    guiRadiusBandLabel.setVisible(false);
-                    guiRadiusBandText.setVisible(false);
-                    guiSearchRadLabel.setVisible(false);
-                    guiSearchRadText.setVisible(false);
-                    guiReduceBox.setVisible(false);
-                    guiRawBox.setVisible(false);
-                    guiRadiusBox.setVisible(false);
-                    guiHoughBox.setVisible(false);
-                    
-                    guiMaxNumText.setText("65535");
-                    guiFrame.pack();
+                    easyFullGUI();
                 }
             });
 
@@ -299,66 +239,11 @@ public class Hough_GUI implements PlugInFilter{
             guiAdvancedModeButton.setText("Advanced Mode");
             guiAdvancedModeButton.addActionListener((java.awt.event.ActionEvent evt) -> {
                 if (guiLocalBox.isSelected()){
-                    guiTitle.setText("Local Hough Circle Transform");
-                    guiMinLabel.setVisible(true);
-                    guiMinText.setVisible(true);
-                    guiMaxLabel.setVisible(true);
-                    guiMaxText.setVisible(true);
-                    guiIncLabel.setVisible(true);
-                    guiIncText.setVisible(true);
-                    guiMinNumLabel.setVisible(true);
-                    guiMinNumText.setVisible(true);
-                    guiMaxNumLabel.setVisible(true);
-                    guiMaxNumText.setVisible(true);
-                    guiThreshLabel.setVisible(true);
-                    guiThreshText.setVisible(true);
-                    guiResLabel.setVisible(true);
-                    guiResText.setVisible(true);
-                    guiClearLabel.setVisible(true);
-                    guiClearText.setVisible(true);
-                    guiRadiusBandLabel.setVisible(true);
-                    guiRadiusBandText.setVisible(true);
-                    guiSearchRadLabel.setVisible(true);
-                    guiSearchRadText.setVisible(true);
-                    guiReduceBox.setVisible(true);
-                    guiRawBox.setVisible(true);
-                    guiRadiusBox.setVisible(true);
-                    guiHoughBox.setVisible(true);
-                    
-                    guiMinNumText.setText(guiMaxNumText.getText());
-                    guiFrame.pack();
+                    advancedLocalGUI();
                 }
                 //Setup full advanced GUI
                 else{
-                    guiTitle.setText("Hough Circle Transform");
-                    guiMinLabel.setVisible(true);
-                    guiMinText.setVisible(true);
-                    guiMaxLabel.setVisible(true);
-                    guiMaxText.setVisible(true);
-                    guiIncLabel.setVisible(true);
-                    guiIncText.setVisible(true);
-                    guiMinNumLabel.setVisible(false);
-                    guiMinNumText.setVisible(false);
-                    guiMaxNumLabel.setVisible(true);
-                    guiMaxNumText.setVisible(true);
-                    guiThreshLabel.setVisible(true);
-                    guiThreshText.setVisible(true);
-                    guiResLabel.setVisible(true);
-                    guiResText.setVisible(true);
-                    guiClearLabel.setVisible(true);
-                    guiClearText.setVisible(true);
-                    guiRadiusBandLabel.setVisible(false);
-                    guiRadiusBandText.setVisible(false);
-                    guiSearchRadLabel.setVisible(false);
-                    guiSearchRadText.setVisible(false);
-                    guiReduceBox.setVisible(true);
-                    guiRawBox.setVisible(true);
-                    guiRadiusBox.setVisible(true);
-                    guiHoughBox.setVisible(true);
-                    
-                    guiMinNumText.setText("10");
-                    guiMaxNumText.setText("10");
-                    guiFrame.pack();
+                    advancedFullGUI();
                 }
             });
 
@@ -464,131 +349,21 @@ public class Hough_GUI implements PlugInFilter{
                     if(guiLocalBox.isSelected()){
                         //Setup local easy
                         if(guiEasyModeButton.isSelected()){
-                            guiTitle.setText("Local Hough Circle Transform");
-                            guiMinLabel.setVisible(true);
-                            guiMinText.setVisible(true);
-                            guiMaxLabel.setVisible(true);
-                            guiMaxText.setVisible(true);
-                            guiIncLabel.setVisible(false);
-                            guiIncText.setVisible(false);
-                            guiMinNumLabel.setVisible(false);
-                            guiMinNumText.setVisible(false);
-                            guiMaxNumLabel.setVisible(true);
-                            guiMaxNumText.setVisible(true);
-                            guiThreshLabel.setVisible(true);
-                            guiThreshText.setVisible(true);
-                            guiResLabel.setVisible(false);
-                            guiResText.setVisible(false);
-                            guiClearLabel.setVisible(false);
-                            guiClearText.setVisible(false);
-                            guiRadiusBandLabel.setVisible(false);
-                            guiRadiusBandText.setVisible(false);
-                            guiSearchRadLabel.setVisible(false);
-                            guiSearchRadText.setVisible(false);
-                            guiReduceBox.setVisible(false);
-                            guiRawBox.setVisible(false);
-                            guiRadiusBox.setVisible(false);
-                            guiHoughBox.setVisible(false);
-
-                            guiMaxNumText.setText("10");
-                            guiMinNumText.setText("65535");
-                            guiFrame.pack();
+                            easyLocalGUI();
                         }
                         //Setup local advanced
                         else{
-                            guiTitle.setText("Local Hough Circle Transform");
-                            guiMinLabel.setVisible(true);
-                            guiMinText.setVisible(true);
-                            guiMaxLabel.setVisible(true);
-                            guiMaxText.setVisible(true);
-                            guiIncLabel.setVisible(true);
-                            guiIncText.setVisible(true);
-                            guiMinNumLabel.setVisible(true);
-                            guiMinNumText.setVisible(true);
-                            guiMaxNumLabel.setVisible(true);
-                            guiMaxNumText.setVisible(true);
-                            guiThreshLabel.setVisible(true);
-                            guiThreshText.setVisible(true);
-                            guiResLabel.setVisible(true);
-                            guiResText.setVisible(true);
-                            guiClearLabel.setVisible(true);
-                            guiClearText.setVisible(true);
-                            guiRadiusBandLabel.setVisible(true);
-                            guiRadiusBandText.setVisible(true);
-                            guiSearchRadLabel.setVisible(true);
-                            guiSearchRadText.setVisible(true);
-                            guiReduceBox.setVisible(true);
-                            guiRawBox.setVisible(true);
-                            guiRadiusBox.setVisible(true);
-                            guiHoughBox.setVisible(true);
-
-                            guiMaxNumText.setText(guiMaxNumText.getText());
-                            guiFrame.pack();
+                            advancedLocalGUI();
                         }
                     }
                     else{
                         //Setup full easy
                         if(guiEasyModeButton.isSelected()){
-                            guiTitle.setText("Hough Circle Transform");
-                            guiMinLabel.setVisible(true);
-                            guiMinText.setVisible(true);
-                            guiMaxLabel.setVisible(true);
-                            guiMaxText.setVisible(true);
-                            guiIncLabel.setVisible(false);
-                            guiIncText.setVisible(false);
-                            guiMinNumLabel.setVisible(false);
-                            guiMinNumText.setVisible(false);
-                            guiMaxNumLabel.setVisible(false);
-                            guiMaxNumText.setVisible(false);
-                            guiThreshLabel.setVisible(true);
-                            guiThreshText.setVisible(true);
-                            guiResLabel.setVisible(false);
-                            guiResText.setVisible(false);
-                            guiClearLabel.setVisible(false);
-                            guiClearText.setVisible(false);
-                            guiRadiusBandLabel.setVisible(false);
-                            guiRadiusBandText.setVisible(false);
-                            guiSearchRadLabel.setVisible(false);
-                            guiSearchRadText.setVisible(false);
-                            guiReduceBox.setVisible(false);
-                            guiRawBox.setVisible(false);
-                            guiRadiusBox.setVisible(false);
-                            guiHoughBox.setVisible(false);
-
-                            guiMaxNumText.setText("65535");
-                            guiFrame.pack();
+                            easyFullGUI();
                         }
                         //setup full advanced
                         else{
-                            guiTitle.setText("Hough Circle Transform");
-                            guiMinLabel.setVisible(true);
-                            guiMinText.setVisible(true);
-                            guiMaxLabel.setVisible(true);
-                            guiMaxText.setVisible(true);
-                            guiIncLabel.setVisible(true);
-                            guiIncText.setVisible(true);
-                            guiMinNumLabel.setVisible(false);
-                            guiMinNumText.setVisible(false);
-                            guiMaxNumLabel.setVisible(true);
-                            guiMaxNumText.setVisible(true);
-                            guiThreshLabel.setVisible(true);
-                            guiThreshText.setVisible(true);
-                            guiResLabel.setVisible(true);
-                            guiResText.setVisible(true);
-                            guiClearLabel.setVisible(true);
-                            guiClearText.setVisible(true);
-                            guiRadiusBandLabel.setVisible(false);
-                            guiRadiusBandText.setVisible(false);
-                            guiSearchRadLabel.setVisible(false);
-                            guiSearchRadText.setVisible(false);
-                            guiReduceBox.setVisible(true);
-                            guiRawBox.setVisible(true);
-                            guiRadiusBox.setVisible(true);
-                            guiHoughBox.setVisible(true);
-
-                            guiMinNumText.setText("10");
-                            guiMaxNumText.setText("10");
-                            guiFrame.pack();
+                            advancedFullGUI();
                         }    
                     }
                 }
@@ -842,5 +617,127 @@ public class Hough_GUI implements PlugInFilter{
         //Start the analysis on a separate thread so the GUI stays free.
         guiInput.execute();
     }
-  
+    
+    void easyFullGUI(){
+        guiTitle.setText("Hough Circle Transform");
+        guiMinLabel.setVisible(true);
+        guiMinText.setVisible(true);
+        guiMaxLabel.setVisible(true);
+        guiMaxText.setVisible(true);
+        guiIncLabel.setVisible(false);
+        guiIncText.setVisible(false);
+        guiMinNumLabel.setVisible(false);
+        guiMinNumText.setVisible(false);
+        guiMaxNumLabel.setVisible(false);
+        guiMaxNumText.setVisible(false);
+        guiThreshLabel.setVisible(true);
+        guiThreshText.setVisible(true);
+        guiResLabel.setVisible(false);
+        guiResText.setVisible(false);
+        guiClearLabel.setVisible(false);
+        guiClearText.setVisible(false);
+        guiRadiusBandLabel.setVisible(false);
+        guiRadiusBandText.setVisible(false);
+        guiSearchRadLabel.setVisible(false);
+        guiSearchRadText.setVisible(false);
+        guiReduceBox.setVisible(false);
+        guiRawBox.setVisible(false);
+        guiRadiusBox.setVisible(false);
+        guiHoughBox.setVisible(false);
+
+        guiMaxNumText.setText("65535");
+        guiFrame.pack();
+    }
+    void easyLocalGUI(){
+        guiTitle.setText("Local Hough Circle Transform");
+        guiMinLabel.setVisible(true);
+        guiMinText.setVisible(true);
+        guiMaxLabel.setVisible(true);
+        guiMaxText.setVisible(true);
+        guiIncLabel.setVisible(false);
+        guiIncText.setVisible(false);
+        guiMinNumLabel.setVisible(false);
+        guiMinNumText.setVisible(false);
+        guiMaxNumLabel.setVisible(true);
+        guiMaxNumText.setVisible(true);
+        guiThreshLabel.setVisible(true);
+        guiThreshText.setVisible(true);
+        guiResLabel.setVisible(false);
+        guiResText.setVisible(false);
+        guiClearLabel.setVisible(false);
+        guiClearText.setVisible(false);
+        guiRadiusBandLabel.setVisible(false);
+        guiRadiusBandText.setVisible(false);
+        guiSearchRadLabel.setVisible(false);
+        guiSearchRadText.setVisible(false);
+        guiReduceBox.setVisible(false);
+        guiRawBox.setVisible(false);
+        guiRadiusBox.setVisible(false);
+        guiHoughBox.setVisible(false);
+
+        guiMaxNumText.setText("10");
+        guiMinNumText.setText("65535");
+        guiFrame.pack();
+    }
+    void advancedFullGUI(){
+        guiTitle.setText("Hough Circle Transform");
+        guiMinLabel.setVisible(true);
+        guiMinText.setVisible(true);
+        guiMaxLabel.setVisible(true);
+        guiMaxText.setVisible(true);
+        guiIncLabel.setVisible(true);
+        guiIncText.setVisible(true);
+        guiMinNumLabel.setVisible(false);
+        guiMinNumText.setVisible(false);
+        guiMaxNumLabel.setVisible(true);
+        guiMaxNumText.setVisible(true);
+        guiThreshLabel.setVisible(true);
+        guiThreshText.setVisible(true);
+        guiResLabel.setVisible(true);
+        guiResText.setVisible(true);
+        guiClearLabel.setVisible(true);
+        guiClearText.setVisible(true);
+        guiRadiusBandLabel.setVisible(false);
+        guiRadiusBandText.setVisible(false);
+        guiSearchRadLabel.setVisible(false);
+        guiSearchRadText.setVisible(false);
+        guiReduceBox.setVisible(true);
+        guiRawBox.setVisible(true);
+        guiRadiusBox.setVisible(true);
+        guiHoughBox.setVisible(true);
+
+        guiMinNumText.setText("10");
+        guiMaxNumText.setText("10");
+        guiFrame.pack();
+    }
+    void advancedLocalGUI(){
+        guiTitle.setText("Local Hough Circle Transform");
+        guiMinLabel.setVisible(true);
+        guiMinText.setVisible(true);
+        guiMaxLabel.setVisible(true);
+        guiMaxText.setVisible(true);
+        guiIncLabel.setVisible(true);
+        guiIncText.setVisible(true);
+        guiMinNumLabel.setVisible(true);
+        guiMinNumText.setVisible(true);
+        guiMaxNumLabel.setVisible(true);
+        guiMaxNumText.setVisible(true);
+        guiThreshLabel.setVisible(true);
+        guiThreshText.setVisible(true);
+        guiResLabel.setVisible(true);
+        guiResText.setVisible(true);
+        guiClearLabel.setVisible(true);
+        guiClearText.setVisible(true);
+        guiRadiusBandLabel.setVisible(true);
+        guiRadiusBandText.setVisible(true);
+        guiSearchRadLabel.setVisible(true);
+        guiSearchRadText.setVisible(true);
+        guiReduceBox.setVisible(true);
+        guiRawBox.setVisible(true);
+        guiRadiusBox.setVisible(true);
+        guiHoughBox.setVisible(true);
+
+        guiMinNumText.setText(guiMaxNumText.getText());
+        guiFrame.pack();
+    }
 }
