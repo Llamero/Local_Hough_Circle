@@ -22,6 +22,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
@@ -67,6 +68,7 @@ public class Hough_GUI implements PlugInFilter{
     final JCheckBox guiRadiusBox = new javax.swing.JCheckBox();
     final JCheckBox guiHoughBox = new javax.swing.JCheckBox();
     final JCheckBox guiResultsBox = new javax.swing.JCheckBox();
+    final JProgressBar guiProgressBar = new javax.swing.JProgressBar();
     final JButton guiOKButton = new javax.swing.JButton();
     
     //Search parameters
@@ -90,6 +92,12 @@ public class Hough_GUI implements PlugInFilter{
     private boolean showRadius = false;//Contains whether the user wants a map of centroids and radii outputed from search - argument syntax: "show_centroids"
     private boolean showScores = false;//Contains whether the user wants a map of centroids and Hough scores outputed from search - argument syntax: "show_scores"
     private boolean results = false;//Contains whether the user wants to export the measurements to a reuslts table 
+    
+    //Keep track of whether analysis has started, and update GUI accordingly
+    private boolean analysisStarted = false;
+    
+    //Start instance of analysis class
+    Hough_Circle guiInput = new Hough_Circle();
     
     public int setup(String arg, ImagePlus imp) {        
         
@@ -603,49 +611,72 @@ public class Hough_GUI implements PlugInFilter{
             
             guiResultsBox.setSelected(true);
             guiResultsBox.setText("Export measurements to the results table");
+            
+            guiProgressBar.setFont(new java.awt.Font("Courier New", 0, 11)); // NOI18N
+            guiProgressBar.setVisible(false);
 
             guiOKButton.setText("OK");
             guiOKButton.addActionListener((java.awt.event.ActionEvent evt) -> { 
                 // </editor-fold>
                 // <editor-fold desc="Retrieve GUI arguments and calculate Hough parameters">
-                //Retrive the numbers from the text boxes and combobox
-                radiusMin = Integer.parseInt(guiMinText.getText());              
-                radiusMax = Integer.parseInt(guiMaxText.getText());
-                radiusInc = Integer.parseInt(guiIncText.getText());
-                minCircles = Integer.parseInt(guiMinNumText.getText());
-                maxCircles = Integer.parseInt(guiMaxNumText.getText());
-                thresholdRatio = Double.parseDouble(guiThreshText.getText());
-                resolution = Integer.parseInt(guiResText.getText());
-                ratio = Double.parseDouble(guiClearText.getText());
-                searchBand = Integer.parseInt(guiRadiusBandText.getText());
-                searchRadius = Integer.parseInt(guiSearchRadText.getText());
-                reduce = guiReduceBox.isSelected();
-                local = guiLocalBox.isSelected();
                 
-                //Retrieve the check box status
-                houghSeries = guiRawBox.isSelected();
-                showCircles = guiPointBox.isSelected();
-                showRadius = guiRadiusBox.isSelected();
-                showScores = guiHoughBox.isSelected();
-                results = guiResultsBox.isSelected();
-                
-                //Override searchBand and searchRad if in local easy mode
-                if(guiEasyModeButton.isSelected() & guiLocalBox.isSelected()){
-                    searchRadius = radiusMin;
-                    searchBand = radiusMax-radiusMin;
+                //If the analysis is not started, begin the analysis
+                if(!analysisStarted){
+                    //Retrive the numbers from the text boxes and combobox
+                    radiusMin = Integer.parseInt(guiMinText.getText());              
+                    radiusMax = Integer.parseInt(guiMaxText.getText());
+                    radiusInc = Integer.parseInt(guiIncText.getText());
+                    minCircles = Integer.parseInt(guiMinNumText.getText());
+                    maxCircles = Integer.parseInt(guiMaxNumText.getText());
+                    thresholdRatio = Double.parseDouble(guiThreshText.getText());
+                    resolution = Integer.parseInt(guiResText.getText());
+                    ratio = Double.parseDouble(guiClearText.getText());
+                    searchBand = Integer.parseInt(guiRadiusBandText.getText());
+                    searchRadius = Integer.parseInt(guiSearchRadText.getText());
+                    reduce = guiReduceBox.isSelected();
+                    local = guiLocalBox.isSelected();
+
+                    //Retrieve the check box status
+                    houghSeries = guiRawBox.isSelected();
+                    showCircles = guiPointBox.isSelected();
+                    showRadius = guiRadiusBox.isSelected();
+                    showScores = guiHoughBox.isSelected();
+                    results = guiResultsBox.isSelected();
+
+                    //Override searchBand and searchRad if in local easy mode
+                    if(guiEasyModeButton.isSelected() & guiLocalBox.isSelected()){
+                        searchRadius = radiusMin;
+                        searchBand = radiusMax-radiusMin;
+                    }
+
+                    //Override impossible inputs
+                    if (maxCircles > 65535) maxCircles = 65535;
+                    if (minCircles > maxCircles) minCircles = maxCircles;
+                    if (searchBand < 1) searchBand = 1;
+                    if (searchRadius < 1) searchRadius = 1;
+
+                    //Remove the GUI frame now that it is no longer needed
+                    //guiFrame.dispose();
+
+                    startTransform();
+                    
+                    //Set button to cancel
+                    guiOKButton.setText("Cancel");
+                    guiFrame.pack();
+                    
+                    analysisStarted = true;
                 }
                 
-                //Override impossible inputs
-                if (maxCircles > 65535) maxCircles = 65535;
-                if (minCircles > maxCircles) minCircles = maxCircles;
-                if (searchBand < 1) searchBand = 1;
-                if (searchRadius < 1) searchRadius = 1;
-                
-                //Remove the GUI frame now that it is no longer needed
-                //guiFrame.dispose();
-                
-                startTransform();
-                  
+                //If analysis is running, cancel the analysis
+                else{
+                    guiInput.cancel(true); //Stop analysis thread
+                    IJ.showProgress(0); //Reset progress bar
+                    guiOKButton.setText("OK");
+                    guiFrame.pack(); 
+                    analysisStarted = false;
+                    IJ.showStatus("Analysis cancelled..."); //Update IJ status
+                    guiInput = new Hough_Circle(); //Create new instance of analysis worker, since last worker thread was cancelled
+                }    
             } //When push button is pushed, retrieve the state of
             );
             // </editor-fold>
@@ -668,8 +699,9 @@ public class Hough_GUI implements PlugInFilter{
                     .addComponent(guiLocalBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(guiReduceBox, javax.swing.GroupLayout.DEFAULT_SIZE, 391, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(guiOKButton, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(guiProgressBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(guiOKButton))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(guiRadiusBandLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -702,12 +734,15 @@ public class Hough_GUI implements PlugInFilter{
                                     .addComponent(guiMaxNumText)
                                     .addComponent(guiThreshText, javax.swing.GroupLayout.DEFAULT_SIZE, 104, Short.MAX_VALUE)))))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(88, 88, 88)
-                        .addComponent(guiEasyModeButton)
-                        .addGap(43, 43, 43)
-                        .addComponent(guiAdvancedModeButton))
-                    .addComponent(guiOutputLabel)
-                    .addComponent(guiSearchLabel))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(88, 88, 88)
+                                .addComponent(guiEasyModeButton)
+                                .addGap(43, 43, 43)
+                                .addComponent(guiAdvancedModeButton))
+                            .addComponent(guiOutputLabel)
+                            .addComponent(guiSearchLabel))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -719,9 +754,9 @@ public class Hough_GUI implements PlugInFilter{
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(guiIntro2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(guiEasyModeButton)
-                    .addComponent(guiAdvancedModeButton))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(guiAdvancedModeButton)
+                    .addComponent(guiEasyModeButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(guiSearchLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -783,7 +818,9 @@ public class Hough_GUI implements PlugInFilter{
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(guiResultsBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(guiOKButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(guiOKButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(guiProgressBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
                        
@@ -798,13 +835,12 @@ public class Hough_GUI implements PlugInFilter{
     
     //Send the GUI values to the analysis class, and then run the analysis on a separate thread
     void startTransform(){
-        
         //Start the background transform by sending the GUI variables to the transform
-        Hough_Circle guiInput = new Hough_Circle();
         guiInput.setParameters(radiusMin, radiusMax, radiusInc, minCircles, maxCircles, thresholdRatio, resolution, ratio, searchBand, 
                 searchRadius, reduce, local, houghSeries, showCircles, showRadius, showScores, results);
 
         //Start the analysis on a separate thread so the GUI stays free.
         guiInput.execute();
-    }    
+    }
+  
 }
