@@ -38,7 +38,7 @@ import java.util.List;
  * @author Ben
  */
 public class Hough_Circle extends SwingWorker<Integer, String>{
-    
+    //Input parameters
     private int radiusMin;  // Find circles with radius grater or equal radiusMin - argument syntax: "min=#"
     private int radiusMax;  // Find circles with radius less or equal radiusMax - argument syntax: "max=#"
     private int radiusInc;  // Increment used to go from radiusMin to radiusMax - argument syntax: "inc=#"
@@ -113,7 +113,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     //Variables for max Hough score search
     private int maxHoughArray[][]; //Matrix to store hough scores, radii, and points from multi-threaded max search
     private int ithread;
-    private int totalTime = 0; //Variable to test beenfits of multithreading
+    //private int totalTime = 0; //Variable to test beenfits of multithreading
     // </editor-fold>
     
    
@@ -985,7 +985,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
             //}
             if(centerPoint == null) getCenterPoints();
 
-            byte cor = -1;
+            byte cor = (byte) 255;
             // Redefine these so refer to ROI coordinates exclusively
             fullWidthROI= widthROI;
             fullWidthX=0;
@@ -1015,10 +1015,45 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                             if(!outOfBounds(j+k+fullWidthY,i+2+fullWidthX))
                                     circlespixels[(j+k+fullWidthY)*fullWidthROI+ (i+2+fullWidthX)] = cor;
                     }
+                    
+                    //Draw Bresenham circle
+                    int x=centerRadii[l];
+                    int y=0;
+                    int err = 0;
+                    while (x >= y) {
+                        if(!outOfBounds(j+y+fullWidthY,i+x+fullWidthX))
+                            circlespixels[(j+y+fullWidthY)*fullWidthROI+ (i+x+fullWidthX)] = cor;
+                        if(!outOfBounds(j+y+fullWidthY,i-x+fullWidthX))
+                            circlespixels[(j+y+fullWidthY)*fullWidthROI+ (i-x+fullWidthX)] = cor;
+                        if(!outOfBounds(j-y+fullWidthY,i+x+fullWidthX))
+                            circlespixels[(j-y+fullWidthY)*fullWidthROI+ (i+x+fullWidthX)] = cor;
+                        if(!outOfBounds(j-y+fullWidthY,i-x+fullWidthX))
+                            circlespixels[(j-y+fullWidthY)*fullWidthROI+ (i-x+fullWidthX)] = cor;
+
+                        if(!outOfBounds(j+x+fullWidthY,i+y+fullWidthX))
+                            circlespixels[(j+x+fullWidthY)*fullWidthROI+ (i+y+fullWidthX)] = cor;
+                        if(!outOfBounds(j+x+fullWidthY,i-y+fullWidthX))
+                            circlespixels[(j+x+fullWidthY)*fullWidthROI+ (i-y+fullWidthX)] = cor;                    
+                        if(!outOfBounds(j-x+fullWidthY,i+y+fullWidthX))
+                            circlespixels[(j-x+fullWidthY)*fullWidthROI+ (i+y+fullWidthX)] = cor;                  
+                        if(!outOfBounds(j-x+fullWidthY,i-y+fullWidthX))
+                            circlespixels[(j-x+fullWidthY)*fullWidthROI+ (i-y+fullWidthX)] = cor;  
+                        
+                        if(err <= 0){
+                            y += 1;
+                            err += 2*y + 1;
+                        }
+                        else{
+                            x -= 1;
+                            err -= 2*x + 1;
+                        }
+                    }
+                    
             }
             circleStack.setPixels(circlespixels, slice);
             circleStack.setSliceLabel(nCircles + " circles found", slice);
     }
+    
     
     // Draw the centroids found in the original image where intensity = radius.
     private void drawCentroids(int slice, ImageStack radiusStack, ImageStack scoreStack) {
@@ -1335,6 +1370,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     }
     
     //Catches publish info from background thread so that the status can be checked
+    @Override
     protected void process(List<String> status) {
       currentStatus = status.get(status.size()-1);
    }
