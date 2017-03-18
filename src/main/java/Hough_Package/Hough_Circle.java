@@ -586,6 +586,7 @@ IJ.log("" + totalTime);
                                 IJ.showProgress(currentProgress, 100);
                                 lastProgress.set(currentProgress);
                             }
+                            startTime = System.currentTimeMillis();
                         }
                         
                         for(int x = 1; x < width-1; x++) {
@@ -723,6 +724,8 @@ IJ.log("" + totalTime);
                                     IJ.showProgress(currentProgress, 100);
                                     lastProgress.set(currentProgress);
                                 }
+                                
+                                startTime = System.currentTimeMillis();
                             }
                             
                             for(int k = 0; k < width; k++){
