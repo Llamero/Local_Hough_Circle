@@ -567,7 +567,6 @@ IJ.log("" + totalTime);
   
                 //Divide the radius tasks across the cores available
                 int currentProgress = 0;
-                long startTime = System.currentTimeMillis();
                 for (int radius = ai.getAndAdd(radiusInc); radius <= radiusMax; radius = ai.getAndAdd(radiusInc)) {  
                     int indexR=(radius-radiusMin)/radiusInc;
                     //For a given radius, transform each pixel in a circle, and add-up the votes 
@@ -575,20 +574,16 @@ IJ.log("" + totalTime);
                         //Increment the progress counter, and submit the current progress status
                         progress.getAndAdd(1);
                         
-                        //Gui updates can be time intensive, so only update at fixed time intervals
-                        if(System.currentTimeMillis() - startTime > GUI_UPDATE_DELAY){                                
-                            //Calculate the current progress value
-                            currentProgress = Math.round((float) (progress.get()/totalProgress));
+                        //Calculate the current progress value
+                        currentProgress = Math.round((float) (progress.get()/totalProgress));
 
-                            //There is a significant time penalty for progress updates, so only update if needed
-                            if(currentProgress > lastProgress.get()){ //7.8s with if, 8.7s without if, 7.8s with no progress update
-                                if(isGUI) setProgress(currentProgress);
-                                IJ.showProgress(currentProgress, 100);
-                                lastProgress.set(currentProgress);
-                            }
-                            startTime = System.currentTimeMillis();
+                        //There is a significant time penalty for progress updates, so only update if needed
+                        if(currentProgress > lastProgress.get()){ //7.8s with if, 8.7s without if, 7.8s with no progress update, 8.7s with delay between GUI updates
+                            if(isGUI) setProgress(currentProgress);
+                            IJ.showProgress(currentProgress, 100);
+                            lastProgress.set(currentProgress);
                         }
-                        
+                       
                         for(int x = 1; x < width-1; x++) {
                                 if( imageValues[(x+offx)+(y+offy)*fullWidth] != 0 )  {// Edge pixel found                                    
                                     for(int i = 0; i < lutSize; i++) {
@@ -706,7 +701,6 @@ IJ.log("" + totalTime);
                     int maxHoughThread = -1;
                     int maxRadiusThread = -1;
                     int currentProgress = 0;
-                    long startTime = System.currentTimeMillis();
                     Point maxPointThread = new Point (-1,-1);
                     for(int a=ai.getAndIncrement(); a<depth; a=ai.getAndIncrement()){
                         for(int j = 0; j < height; j++) {
@@ -714,20 +708,15 @@ IJ.log("" + totalTime);
                             progress.getAndAdd(1);
                             
                             //Gui updates can be time intensive, so only update at fixed time intervals
-                            if(System.currentTimeMillis() - startTime > GUI_UPDATE_DELAY){                                
-                                //Calculate the current progress value
-                                currentProgress = Math.round((float) (progress.get()/totalProgress));
+                            currentProgress = Math.round((float) (progress.get()/totalProgress));
 
-                                //There is a significant time penalty for progress updates, so only update if needed
-                                if(currentProgress > lastProgress.get()){ //7.8s with if, 8.7s without if, 7.8s with no progress update
-                                    if(isGUI) setProgress(currentProgress);
-                                    IJ.showProgress(currentProgress, 100);
-                                    lastProgress.set(currentProgress);
-                                }
-                                
-                                startTime = System.currentTimeMillis();
+                            //There is a significant time penalty for progress updates, so only update if needed
+                            if(currentProgress > lastProgress.get()){ //7.8s with if, 8.7s without if, 7.8s with no progress update, 8.7s with delay between GUI updates
+                                if(isGUI) setProgress(currentProgress);
+                                IJ.showProgress(currentProgress, 100);
+                                lastProgress.set(currentProgress);
                             }
-                            
+                           
                             for(int k = 0; k < width; k++){
                                 if(houghValues[k][j][a] > maxHoughThread) {
                                     maxHoughThread = houghValues[k][j][a];
