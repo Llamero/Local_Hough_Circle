@@ -61,6 +61,8 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     private boolean results = false; //Contains whether the user wants to export the measurements to a reuslts table 
     
     private String currentStatus = ""; //String for outputting current status
+    private boolean isGUI; //Whether a GUI is active (or a macro called the plugin)
+    private final static int GUI_UPDATE_DELAY = 100; //How long to wait between GUI updates
             
     //Hough transform variables
     private ImagePlus imp; //Initalize the variable to hold the image
@@ -116,7 +118,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
    
     //Import values from GUI class before starting the analysis thread
     public void setParameters(int radiusMin, int radiusMax, int radiusInc, int minCircles, int maxCircles, double thresholdRatio, int resolution, double ratio, int searchBand, 
-                int searchRadius, boolean reduce, boolean local, boolean houghSeries, boolean showCircles, boolean showRadius, boolean showScores, boolean results){
+                int searchRadius, boolean reduce, boolean local, boolean houghSeries, boolean showCircles, boolean showRadius, boolean showScores, boolean results, boolean isGUI){
         
         this.radiusMin = radiusMin;
         this.radiusMax = radiusMax;
@@ -135,6 +137,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
         this.showRadius = showRadius;
         this.showScores = showScores;
         this.results = results;
+        this.isGUI = isGUI;
     }
     
     @Override
@@ -259,22 +262,20 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
          
             //Show tranform status if there is more than one slice
             if(isStack){
-               if((System.currentTimeMillis() - startTime) > 500){
-                   IJ.showStatus("Hough tranform - processing frame: " + slice + " of " + stackSlices + "");
+               if((System.currentTimeMillis() - startTime) > GUI_UPDATE_DELAY){
+                   if(isGUI){
+                       //Update GUI progress bar
+                       publish("Processing frame: " + slice + " of " + stackSlices + "");
+                       setProgress(Math.round(100*slice/stackSlices));
+                   }
                    
+                   //Update IJ status bar
+                   IJ.showStatus("Hough tranform - processing frame: " + slice + " of " + stackSlices + ""); 
                    IJ.showProgress(slice, stackSlices);
-                   
-                   //Update GUI progress bar
-                   publish("Processing frame: " + slice + " of " + stackSlices + "");
-                   setProgress(Math.round(100*slice/stackSlices));
-                   
+  
                    //Reset timer
                    startTime = System.currentTimeMillis();
                }
-            }
-            else{
-               IJ.log("\\Clear");
-               IJ.log("Running Hough tansfrom...\r\n");
             }
  
             ImageProcessor ip = floatStack.getProcessor(slice);
@@ -326,26 +327,31 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
 
                 //If no circles are found, then revert to a full Hough
                 else{
-                    method = "Full";
+                    method = "Full";                   
                     houghTransform();
+                    
                     if (houghSeries){
                         //Create the hyperstach to put into the result if needed
                         HoughSpaceSeries(slice, houghStack);
                     }
-                    // Mark the center of the found circles in a new image if user wants to find centers
+                    // Mark the center of the found circles in a new image if user wants to find centers                    
                     if(showCircles || showRadius || showScores || results) getCenterPoints();
-                }
+                }                
             }
             //Otherwise, perform the full transform
             else{
                 method = "Full";
+long startTestTime = System.currentTimeMillis(); 
                 houghTransform();
+totalTime += System.currentTimeMillis()-startTestTime;                
                 if (houghSeries){
                     //Create the hyperstach to put into the result if needed
                     HoughSpaceSeries(slice, houghStack);
                 }
                 // Mark the center of the found circles in a new image if user wants to find centers
+startTestTime = System.currentTimeMillis();                
                 if(showCircles || showRadius || showScores || results) getCenterPoints();
+totalTime += System.currentTimeMillis()-startTestTime;                
             }
              // </editor-fold>
             
@@ -361,7 +367,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
             if (results) resultsTable(slice);
             
         }
-//IJ.log("" + totalTime);
+IJ.log("" + totalTime);
         //Draw the resulting stacks
          if(houghSeries){
             houghPlus = new ImagePlus("Hough Transform Series", houghStack);
@@ -397,7 +403,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
             final Thread[] threads = newThreadArray();
 
             //Create an atomic integer counter that each thread can use to count through the radii
-            final AtomicInteger ai = new AtomicInteger(0);  
+            final AtomicInteger ai = new AtomicInteger(0);
 
             //Build a thread for as many CPUs as are available to the JVM 
             for (ithread = 0; ithread < threads.length; ithread++) {    
@@ -529,14 +535,24 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
 
     //OPTIMIZED
     private void houghTransform () {
+        //Update progress bar string with current task
+        if(isGUI) publish("Performing full Hough transform...");
+        IJ.showStatus("Performing full Hough transform...");
+        
         //Build an array to store the result from each thread
         final Thread[] threads = newThreadArray();
         
         //Create an atomic integer counter that each thread can use to count through the radii
-        final AtomicInteger ai = new AtomicInteger(radiusMin);  
+        final AtomicInteger ai = new AtomicInteger(radiusMin);
+        final AtomicInteger progress = new AtomicInteger(0);
+        final AtomicInteger lastProgress = new AtomicInteger(0);
         
         //Create an array to store the Hough values
         houghValues = new int[width][height][depth];
+        
+        //Create a variable for storing the total progress possible (100 = complete)
+        //Nute depth is devided by nCPUs, therefore depth*nCPUs/nCPUs = depth
+        double totalProgress = height*depth/100;
         
         //Build a thread for as many CPUs as are available to the JVM 
         for (ithread = 0; ithread < threads.length; ithread++) {    
@@ -550,10 +566,28 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                 public void run() {  
   
                 //Divide the radius tasks across the cores available
+                int currentProgress = 0;
+                long startTime = System.currentTimeMillis();
                 for (int radius = ai.getAndAdd(radiusInc); radius <= radiusMax; radius = ai.getAndAdd(radiusInc)) {  
                     int indexR=(radius-radiusMin)/radiusInc;
                     //For a given radius, transform each pixel in a circle, and add-up the votes 
                     for(int y = 1; y < height-1; y++) {
+                        //Increment the progress counter, and submit the current progress status
+                        progress.getAndAdd(1);
+                        
+                        //Gui updates can be time intensive, so only update at fixed time intervals
+                        if(System.currentTimeMillis() - startTime > GUI_UPDATE_DELAY){                                
+                            //Calculate the current progress value
+                            currentProgress = Math.round((float) (progress.get()/totalProgress));
+
+                            //There is a significant time penalty for progress updates, so only update if needed
+                            if(currentProgress > lastProgress.get()){ //7.8s with if, 8.7s without if, 7.8s with no progress update
+                                if(isGUI) setProgress(currentProgress);
+                                IJ.showProgress(currentProgress, 100);
+                                lastProgress.set(currentProgress);
+                            }
+                        }
+                        
                         for(int x = 1; x < width-1; x++) {
                                 if( imageValues[(x+offx)+(y+offy)*fullWidth] != 0 )  {// Edge pixel found                                    
                                     for(int i = 0; i < lutSize; i++) {
@@ -645,9 +679,15 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
         
         //Create an atomic integer counter that each thread can use to count through the radii
         final AtomicInteger ai = new AtomicInteger(0);
-        
+        final AtomicInteger progress = new AtomicInteger(0);
+        final AtomicInteger lastProgress = new AtomicInteger(0);
+                 
         //Create an integer for indexing the results array (one result per thread
         final AtomicInteger Index = new AtomicInteger(0);
+        
+        //Create a variable for storing the total progress possible (100 = complete)
+        //Nute depth is devided by nCPUs, therefore depth*nCPUs/nCPUs = depth
+        double totalProgress = height*depth/100;
 
         maxHough = 0;
         
@@ -664,9 +704,27 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                 public void run() {
                     int maxHoughThread = -1;
                     int maxRadiusThread = -1;
+                    int currentProgress = 0;
+                    long startTime = System.currentTimeMillis();
                     Point maxPointThread = new Point (-1,-1);
                     for(int a=ai.getAndIncrement(); a<depth; a=ai.getAndIncrement()){
                         for(int j = 0; j < height; j++) {
+                            //Increment the progress counter, and submit the current progress status
+                            progress.getAndAdd(1);
+                            
+                            //Gui updates can be time intensive, so only update at fixed time intervals
+                            if(System.currentTimeMillis() - startTime > GUI_UPDATE_DELAY){                                
+                                //Calculate the current progress value
+                                currentProgress = Math.round((float) (progress.get()/totalProgress));
+
+                                //There is a significant time penalty for progress updates, so only update if needed
+                                if(currentProgress > lastProgress.get()){ //7.8s with if, 8.7s without if, 7.8s with no progress update
+                                    if(isGUI) setProgress(currentProgress);
+                                    IJ.showProgress(currentProgress, 100);
+                                    lastProgress.set(currentProgress);
+                                }
+                            }
+                            
                             for(int k = 0; k < width; k++){
                                 if(houghValues[k][j][a] > maxHoughThread) {
                                     maxHoughThread = houghValues[k][j][a];
@@ -1008,7 +1066,11 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
         maxHough = threshold;
 
         while(countCircles < maxCircles && maxHough >= threshold) {
-
+            
+            //Update bar string with current circle that is being searched for
+            if(isGUI) publish("Searching for circles. " + countCircles + " circles found.");
+            IJ.showStatus("Searching for circles. " + countCircles + " circles found.");
+            
             //Search for the highest remaining Hough score in the matrix
             houghMaximum();
 
