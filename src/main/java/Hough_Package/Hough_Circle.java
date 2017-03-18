@@ -348,11 +348,10 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                     HoughSpaceSeries(slice, houghStack);
                 }
                 // Mark the center of the found circles in a new image if user wants to find centers               
-                if(showCircles || showRadius || showScores || results) getCenterPoints();              
+                if(showCircles || showRadius || showScores || results) getCenterPoints();
+               
             }
              // </editor-fold>
-            
-            if(!isStack) IJ.log("Searching Hough space for circles...\r\n");
 
             // Create image View for Marked Circles.
             if(showCircles) drawCircles(slice, circleStack, width, height, offx, offy, fullWidth);
@@ -364,7 +363,9 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
             if (results) resultsTable(slice);
             
         }
-IJ.log("" + totalTime);
+//startTestTime = System.currentTimeMillis(); 
+//totalTime += System.currentTimeMillis()-startTestTime; 
+//IJ.log("" + totalTime);
         //Draw the resulting stacks
          if(houghSeries){
             houghPlus = new ImagePlus("Hough Transform Series", houghStack);
@@ -756,8 +757,6 @@ IJ.log("" + totalTime);
                 maxPoint = new Point((int) maxHoughArray1[2], (int) maxHoughArray1[3]);    
             }
         }
-        //long stopTime = System.currentTimeMillis();
-        //IJ.log("Elapsed time was " + (stopTime - startTime) + " miliseconds.");
     }
     
     //OPTMIZED - cancellable
