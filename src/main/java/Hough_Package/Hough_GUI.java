@@ -16,7 +16,6 @@ import static ij.plugin.filter.PlugInFilter.SUPPORTS_MASKING;
 import ij.process.ImageProcessor;
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,7 +30,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker.StateValue;
 import javax.swing.UIManager;
-import javax.swing.plaf.basic.BasicProgressBarUI;
 
 /**
  *
@@ -104,6 +102,7 @@ public class Hough_GUI implements PlugInFilter {
     
     //Keep track of whether analysis has started, and update GUI accordingly
     private boolean analysisStarted = false;
+    private boolean isGUI;
     private List<String> status;
     
     //Start instance of analysis class
@@ -142,6 +141,8 @@ public class Hough_GUI implements PlugInFilter {
         // <editor-fold desc="Retrieve macro arguments">
         //See if any arguments have been passed to the plugin via a macro
         if (IJ.isMacro() && ij.Macro.getOptions() != null && !ij.Macro.getOptions().trim().isEmpty()){
+            
+            isGUI = false;
             String[] arguments = ij.Macro.getOptions().split(",");
 
             //remove all spaces from array components
@@ -218,6 +219,7 @@ public class Hough_GUI implements PlugInFilter {
             // <editor-fold desc="Swing GUI part 1.">
             //***Build GUI using Swing***
             //Set the frame to close when the window is closed
+            isGUI = true;
             guiFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
             
             //Format GUI text
@@ -463,6 +465,7 @@ public class Hough_GUI implements PlugInFilter {
                 
                 //If analysis is running, cancel the analysis
                 else{
+                    guiInput.interruptThreads(true);
                     guiInput.cancel(true); //Stop analysis thread
                     IJ.showProgress(0); //Reset progress bar
                     guiOKButton.setText("OK");
@@ -633,6 +636,7 @@ public class Hough_GUI implements PlugInFilter {
         guiInput = new Hough_Circle();
         
         //Add an action listener to the status to allow for GUI to be updated
+        //Code modified from: http://www.javacreed.com/swing-worker-example/
         guiInput.addPropertyChangeListener((final PropertyChangeEvent event) -> {
             switch (event.getPropertyName()) {
                 
@@ -674,7 +678,7 @@ public class Hough_GUI implements PlugInFilter {
 
         //Start the background transform by sending the GUI variables to the transform
         guiInput.setParameters(radiusMin, radiusMax, radiusInc, minCircles, maxCircles, thresholdRatio, resolution, ratio, searchBand, 
-                searchRadius, reduce, local, houghSeries, showCircles, showRadius, showScores, results);
+                searchRadius, reduce, local, houghSeries, showCircles, showRadius, showScores, results, isGUI);
 
         //Start the analysis on a separate thread so the GUI stays free.
         guiInput.execute();

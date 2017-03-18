@@ -63,6 +63,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     private String currentStatus = ""; //String for outputting current status
     private boolean isGUI; //Whether a GUI is active (or a macro called the plugin)
     private final static int GUI_UPDATE_DELAY = 100; //How long to wait between GUI updates
+    private boolean cancelThread = false;
             
     //Hough transform variables
     private ImagePlus imp; //Initalize the variable to hold the image
@@ -341,17 +342,13 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
             //Otherwise, perform the full transform
             else{
                 method = "Full";
-long startTestTime = System.currentTimeMillis(); 
-                houghTransform();
-totalTime += System.currentTimeMillis()-startTestTime;                
+                houghTransform();             
                 if (houghSeries){
                     //Create the hyperstach to put into the result if needed
                     HoughSpaceSeries(slice, houghStack);
                 }
-                // Mark the center of the found circles in a new image if user wants to find centers
-startTestTime = System.currentTimeMillis();                
-                if(showCircles || showRadius || showScores || results) getCenterPoints();
-totalTime += System.currentTimeMillis()-startTestTime;                
+                // Mark the center of the found circles in a new image if user wants to find centers               
+                if(showCircles || showRadius || showScores || results) getCenterPoints();              
             }
              // </editor-fold>
             
@@ -382,7 +379,7 @@ IJ.log("" + totalTime);
          IJ.showProgress(0);
     }
     
-    //OPTMIZED
+    //OPTMIZED - cancellable
     private void startLocalTransform(){
          //Initialize an array to store the local Hough transform from each thread
         localHoughValues = new int [nCirlcesPrev][2*searchRadius + 1][2*searchRadius + 1][2*searchBand + 1];
@@ -418,6 +415,9 @@ IJ.log("" + totalTime);
 
                         //Divide the task so that each core works on a subset of circles
                         for(int circleNum = ai.getAndAdd(1); circleNum < nCirlcesPrev; circleNum = ai.getAndAdd(1)){
+                            //Check for interrupt
+                            if(cancelThread) return;
+                            
                             localHoughTransform(circleNum);
                             localGetCenterPoint(circleNum); //Make sure this returns -1 to index if no circle was found
                         }
@@ -438,7 +438,7 @@ IJ.log("" + totalTime);
         collapseLocalResult();
     }
     
-    //UNTESTED---------------------
+    //OPTIMIZED - cancellable
     private void startPartialLocalSearch(){
         //Build an array to store the result from each thread
         final Thread[] threads = newThreadArray();
@@ -460,6 +460,9 @@ IJ.log("" + totalTime);
                     //Divide the task so that each core works on a subset of circles
                     for(int circleNum = ai.getAndAdd(1); circleNum < nCirlcesPrev; circleNum = ai.getAndAdd(1)){
                         getLocalCenterPoint2(circleNum);
+                        
+                        //Check for interrupt
+                        if(cancelThread) return;
                     }
                 }               
             };  
@@ -478,7 +481,7 @@ IJ.log("" + totalTime);
         collapseLocalResult();
     }
     
-    //OPTMIZED - not time limiting
+    //OPTMIZED - not time limiting - cancellable
     //Build an array of the cartesion transformations necessary for each increment at each radius
     private int buildLookUpTable() {       
         //Build an array to store the X and Y coordinates for each angle increment (resolution) across each radius (depth)
@@ -489,6 +492,8 @@ IJ.log("" + totalTime);
         
         //Step through all radii to be sampled
         for(int radius = radiusMax; radius>=radiusMin; radius -= radiusInc) {
+            //Check for interrupt
+            if(cancelThread) return 0;
             
             //Index counter that also tracks the largest actual LUT size (may be <= resolution)
             int i = 0; 
@@ -533,7 +538,7 @@ IJ.log("" + totalTime);
         return maxLUT;
     }
 
-    //OPTIMIZED
+    //OPTIMIZED - cancellable
     private void houghTransform () {
         //Update progress bar string with current task
         if(isGUI) publish("Performing full Hough transform...");
@@ -583,6 +588,9 @@ IJ.log("" + totalTime);
                             IJ.showProgress(currentProgress, 100);
                             lastProgress.set(currentProgress);
                         }
+                        
+                        //Check for interrupt
+                        if(cancelThread) return;
                        
                         for(int x = 1; x < width-1; x++) {
                                 if( imageValues[(x+offx)+(y+offy)*fullWidth] != 0 )  {// Edge pixel found                                    
@@ -607,7 +615,7 @@ IJ.log("" + totalTime);
     //In the full Hough the image is seach for pixels with a value > 1, and if this is true
     //then the pixel is projected in a circle about that point.
     
-    //OPTMIZED
+    //OPTMIZED - cancellable
     //To reduce the necessary transform space,
     private void localHoughTransform (int index) {
         //Initialize local search variables
@@ -645,6 +653,10 @@ IJ.log("" + totalTime);
             int indexR=(radius-lradiusMin)/radiusInc;
             //For a given radius, transform each pixel in a circle, and add-up the votes 
             for(int y = startHeight; y < endHeight-1; y++) {
+                
+                //Check for interrupt
+                if(cancelThread) return;
+                
                 for(int x = startWidth; x < endWidth-1; x++) {
                     for(int i = 0; i < lutSize; i++){
                         int a = x + offx + lut[1][i][indexR+((lradiusMin-radiusMin)/radiusInc)]; 
@@ -663,7 +675,7 @@ IJ.log("" + totalTime);
         }
     }  
 
-    //OPTMIZED
+    //OPTMIZED - cancellable
     //Find the largest Hough pixel in the 3D Hough transform array to scale the 8-bit conversion
     private void houghMaximum () {
         //long startTime = System.currentTimeMillis(); //1337ms without multi, 319ms with multi, 175ms by writing to private variable per thread
@@ -716,6 +728,9 @@ IJ.log("" + totalTime);
                                 IJ.showProgress(currentProgress, 100);
                                 lastProgress.set(currentProgress);
                             }
+                            
+                            //Check for interrupt
+                            if(cancelThread) return;
                            
                             for(int k = 0; k < width; k++){
                                 if(houghValues[k][j][a] > maxHoughThread) {
@@ -745,7 +760,7 @@ IJ.log("" + totalTime);
         //IJ.log("Elapsed time was " + (stopTime - startTime) + " miliseconds.");
     }
     
-    //OPTMIZED
+    //OPTMIZED - cancellable
     //Create a Hough stack series using the local transforms
     private void convertLocaltoFullHough(int slice, ImageStack houghStack){
        
@@ -770,7 +785,10 @@ IJ.log("" + totalTime);
                 int lradiusMin = localHoughParameters[circleNum][6];
                 int lradiusMax = localHoughParameters[circleNum][7];
                 int ldepth = localHoughParameters[circleNum][8];
-                for(int h=0; h<lheight; h++){    
+                for(int h=0; h<lheight; h++){
+                    //Check for interrupt
+                    if(cancelThread) return;
+                    
                     for(int w=0; w<lwidth; w++){
                         for(int i=0; i<ldepth; i++){
                            localHoughPixels[i+(lradiusMin-radiusMin)/radiusInc][(w+startWidth)+(h+startHeight)*width] = (byte) Math.round ((localHoughValues[circleNum][w][h][i] * 255D) / maxHough);
@@ -813,7 +831,10 @@ IJ.log("" + totalTime);
                             int ldepth = localHoughParameters[circleNum][8];
                             int index = 0;
                             int maxIndex = width * height;
-                            for(int h=0; h<lheight; h++){    
+                            for(int h=0; h<lheight; h++){
+                                //Check for interrupt
+                                if(cancelThread) return;
+                                
                                 for(int w=0; w<lwidth; w++){
                                     for(int i=0; i<ldepth; i++){
                                        index = (w+startWidth)+(h+startHeight)*width; 
@@ -843,7 +864,7 @@ IJ.log("" + totalTime);
        
     }
     
-    //OPTIMIZED
+    //OPTIMIZED - cancellable
     //Add transform series data to the hyperstack
     private void HoughSpaceSeries(int slice, ImageStack houghStack){  
         //If the maximum Hough value has not yet been assigned, search the whole Hough transform for the maximum value
@@ -876,7 +897,9 @@ IJ.log("" + totalTime);
 
                     //Divide the radius tasks across the cores available
                     for (int radius = ai.getAndAdd(radiusInc); radius <= radiusMax; radius = ai.getAndAdd(radiusInc)) {
-
+                        //Check for interrupt
+                        if(cancelThread) return;
+                        
                         //Calculate the corresponding index
                         int houghIndex = (radius-radiusMin)/radiusInc;
 
@@ -898,6 +921,9 @@ IJ.log("" + totalTime);
         //Deposit the array into the Hough Series stack
         //Not time limiting, even at fairly high resolutions
         for(int radius = radiusMin; radius<=radiusMax; radius += radiusInc) {
+            //Check for interrupt
+            if(cancelThread) return;
+
             //Calculate the corresponding index
             int houghIndex = (radius-radiusMin)/radiusInc;
             
@@ -909,11 +935,14 @@ IJ.log("" + totalTime);
         }
     }
     
-    //OPTMIZED
+    //OPTMIZED - cancellable
     // Convert Values in Hough Space to an 8-Bit Image Space.
     private void createHoughPixels (byte houghPixels[], int index) {
 	//Rescale all the Hough values to 8-bit to create the Hough image - 47ms to complete - single threading okay
         for(int l = 0; l < height; l++) {
+            //Check for interrupt
+            if(cancelThread) return;
+            
             for(int i = 0; i < width; i++) {
                 houghPixels[i + l * width] = (byte) Math.round ((houghValues[i][l][index] * 255D) / maxHough);
             }
@@ -921,7 +950,7 @@ IJ.log("" + totalTime);
         }
     }
 
-    // Draw the circles found in the original image.
+    // Draw the circles found in the original image. - cancellable
     private void drawCircles(int slice, ImageStack circleStack, int widthROI, int heightROI, int fullWidthX, int fullWidthY, int fullWidthROI) {
 		
             // Copy original input pixels into output
@@ -931,6 +960,8 @@ IJ.log("" + totalTime);
 
             int roiaddr=0;
             for( int y = fullWidthY; y < fullWidthY+heightROI; y++) {
+                    //Check for interrupt
+                    if(cancelThread) return;
                     for(int x = fullWidthX; x < fullWidthX+widthROI; x++) {
                             // Copy;
                             circlespixels[roiaddr] = (byte) imageValues[x+fullWidthROI*y];
@@ -964,6 +995,9 @@ IJ.log("" + totalTime);
             for(int l = 0; l < nCircles; l++) {
                     int i = centerPoint[l].x;
                     int j = centerPoint[l].y;
+                    
+                    //Check for interrupt
+                    if(cancelThread) return;
                     // Draw a gray cross marking the center of each circle.
                     for( int k = -10 ; k <= 10 ; ++k ) {
                             int p = (j+k+fullWidthY)*fullWidthROI+ (i+fullWidthX);
@@ -1048,7 +1082,7 @@ IJ.log("" + totalTime);
         return(false);
     }
 
-    //OPTMIZED
+    //OPTMIZED - cancellable
     /** Search for a fixed number of circles.
     @param maxCircles The number of circles that should be found.  
     */
@@ -1058,6 +1092,8 @@ IJ.log("" + totalTime);
         maxHough = threshold;
 
         while(countCircles < maxCircles && maxHough >= threshold) {
+            //Check for interrupt
+            if(cancelThread) return;
             
             //Update bar string with current circle that is being searched for
             if(isGUI) publish("Searching for circles. " + countCircles + " circles found.");
@@ -1088,7 +1124,7 @@ IJ.log("" + totalTime);
         }
     }
     
-    //UNTESTED------------------------
+    //OPTIMIZED - cancellable
     private void getLocalCenterPoint2(int index){
         //Initialize local search variables
         //Initialize local search variables
@@ -1115,6 +1151,9 @@ IJ.log("" + totalTime);
         for(int radius = lradiusMin; radius<=lradiusMax; radius += radiusInc){
             int indexR=(radius-radiusMin)/radiusInc;
             for(int j = startHeight; j < endHeight; j++) {
+                //Check for interrupt
+                if(cancelThread) return;
+                
                 for(int k = startWidth; k < endWidth; k++){
                     if(houghValues[k][j][indexR] > maxLocalHough) {
                         maxLocalHough = houghValues[k][j][indexR];
@@ -1140,7 +1179,7 @@ IJ.log("" + totalTime);
         }  
     }
     
-    //OPTMIZED
+    //OPTMIZED - cancellable
     private void localGetCenterPoint(int index){
         
         //Extract the local search parameters
@@ -1160,6 +1199,9 @@ IJ.log("" + totalTime);
         Point maxLocalPoint = new Point (-1,-1);
         for(int a=0; a<ldepth; a++){
             for(int j = 0; j < lheight; j++) {
+                //Check for interrupt
+                if(cancelThread) return;
+                
                 for(int k = 0; k < lwidth; k++){
                     if(localHoughValues[index][k][j][a] > maxLocalHough) {
                         maxLocalHough = localHoughValues[index][k][j][a];
@@ -1223,7 +1265,7 @@ IJ.log("" + totalTime);
         nCircles = indexCounter;
     };
     
-    //OPTIMIZED - Not time limiting, even with large circles
+    //OPTIMIZED - Not time limiting, even with large circles - cancellable
     /** Clear, from the Hough Space, all the counter that are near (radius/2) a previously found circle C.    
     @param x The x coordinate of the circle C found.
     @param x The y coordinate of the circle C found.
@@ -1250,6 +1292,8 @@ IJ.log("" + totalTime);
 
         for(int indexR = 0; indexR<depth; indexR++){
             for(int i = y1; i < y2; i++) {
+                //Check for interrupt
+                if(cancelThread) return;
                 for(int j = x1; j < x2; j++) {	      	     
                     if((int) (Math.pow (j - x, 2D) + Math.pow (i - y, 2D)) < radiusSquared) {
                         houghValues[j][i][indexR] = 0;
@@ -1291,11 +1335,18 @@ IJ.log("" + totalTime);
         }  
     }
     
+    //Catches publish info from background thread so that the status can be checked
     protected void process(List<String> status) {
       currentStatus = status.get(status.size()-1);
    }
-    
+   
+   //Allows GUI class to get status updates from the worker thread 
    public String getStatus(){
        return currentStatus;
    }
+   
+   //Flags that all active child threads should stop when cancel button is pressed in GUI class
+   public void interruptThreads(boolean a){
+       this.cancelThread = a;
+   } 
 }
