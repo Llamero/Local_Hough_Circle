@@ -684,8 +684,6 @@ public class Hough_GUI implements PlugInFilter {
         guiInput.execute();
     }
     
-
-    
     void easyFullGUI(){
         guiTitle.setText("Hough Circle Transform");
         guiMinLabel.setVisible(true);
