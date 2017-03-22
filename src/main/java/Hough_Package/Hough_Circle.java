@@ -56,7 +56,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     //Output parameters
     private boolean houghSeries = false; //Contains whether the user wants the Hough series stack as an output - argument syntax: "show_raw"
     private boolean showCircles = false; //Contains whether the user wants the circles found as an output - argument syntax: "show_mask"
-    private boolean showRadius = false; //Contains whether the user wants a map of centroids and radii outputed from search - argument syntax: "show_centroids"
+    private boolean showID = false; //Contains whether the user wants a map of centroids and radii outputed from search - argument syntax: "show_centroids"
     private boolean showScores = false; //Contains whether the user wants a map of centroids and Hough scores outputed from search - argument syntax: "show_scores"
     private boolean results = false; //Contains whether the user wants to export the measurements to a reuslts table 
     
@@ -100,12 +100,12 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     private ImageStack houghStack;
     private ImagePlus circlePlus;
     private ImageStack circleStack;
-    private ImagePlus radiusPlus;
-    private ImageStack radiusStack;
+    private ImagePlus idPlus;
+    private ImageStack idStack;
     private ImagePlus scorePlus;
     private ImageStack scoreStack;
     private ImageProcessor circlesip;
-    private ImageProcessor radiusip;
+    private ImageProcessor IDip;
     private ImageProcessor scoresip;
     private ResultsTable rt; 
     private String method;
@@ -119,7 +119,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
    
     //Import values from GUI class before starting the analysis thread
     public void setParameters(int radiusMin, int radiusMax, int radiusInc, int minCircles, int maxCircles, double thresholdRatio, int resolution, double ratio, int searchBand, 
-                int searchRadius, boolean reduce, boolean local, boolean houghSeries, boolean showCircles, boolean showRadius, boolean showScores, boolean results, boolean isGUI){
+                int searchRadius, boolean reduce, boolean local, boolean houghSeries, boolean showCircles, boolean showID, boolean showScores, boolean results, boolean isGUI){
         
         this.radiusMin = radiusMin;
         this.radiusMax = radiusMax;
@@ -135,7 +135,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
         this.local = local;
         this.houghSeries = houghSeries;
         this.showCircles = showCircles;
-        this.showRadius = showRadius;
+        this.showID = showID;
         this.showScores = showScores;
         this.results = results;
         this.isGUI = isGUI;
@@ -191,7 +191,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
             if(local) Command += " local_search";
             if(houghSeries) Command += " show_raw";
             if(showCircles) Command += " show_mask";
-            if(showRadius) Command += " show_centroids";
+            if(showID) Command += " show_centroids";
             if(showScores) Command += " show_scores";
             if(results) Command += " results_table";
             Command += "\");\r\n";
@@ -225,8 +225,8 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
         if(showCircles){
             circleStack = new ImageStack(width, height, imp.getNSlices());
         }
-        if(showRadius){
-            radiusStack = new ImageStack(width, height, imp.getNSlices());
+        if(showID){
+            idStack = new ImageStack(width, height, imp.getNSlices());
         }
         if(showScores){
             scoreStack = new ImageStack(width, height, imp.getNSlices());
@@ -336,7 +336,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                         HoughSpaceSeries(slice, houghStack);
                     }
                     // Mark the center of the found circles in a new image if user wants to find centers                    
-                    if(showCircles || showRadius || showScores || results) getCenterPoints();
+                    if(showCircles || showID || showScores || results) getCenterPoints();
                 }                
             }
             //Otherwise, perform the full transform
@@ -348,7 +348,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                     HoughSpaceSeries(slice, houghStack);
                 }
                 // Mark the center of the found circles in a new image if user wants to find centers               
-                if(showCircles || showRadius || showScores || results) getCenterPoints();
+                if(showCircles || showID || showScores || results) getCenterPoints();
                
             }
              // </editor-fold>
@@ -357,7 +357,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
             if(showCircles) drawCircles(slice, circleStack, width, height, offx, offy, fullWidth);
             
             //Create map of centroids where the intensity is the radius
-            if (showRadius || showScores) drawCentroids(slice, radiusStack, scoreStack);
+            if (showID || showScores) drawFilledCircles(slice, idStack, scoreStack);
             
             //Export measurements to the results table
             if (results) resultsTable(slice);
@@ -373,7 +373,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
             houghPlus.show();
          }
          if(showCircles) new ImagePlus("Centroid overlay", circleStack).show();
-         if(showRadius) new ImagePlus("Centroid map", radiusStack).show();
+         if(showID) new ImagePlus("Centroid map", idStack).show();
          if(showScores) new ImagePlus("Score map", scoreStack).show(); 
          if(results) rt.show("Results");
          
@@ -1056,30 +1056,35 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     
     
     // Draw the centroids found in the original image where intensity = radius.
-    private void drawCentroids(int slice, ImageStack radiusStack, ImageStack scoreStack) {
+    private void drawFilledCircles(int slice, ImageStack idStack, ImageStack scoreStack) {
             
         //Create arrays the same size as the images
-        radiusip = new ShortProcessor(width, height);
-        short[] radiuspixels = (short[])radiusip.getPixels();
-
-        scoresip = new ShortProcessor(width, height);
-        short[] scorepixels = (short[])scoresip.getPixels();
+        short[] IDpixels = new short[width*height];
+        float[] scorepixels = new float[width*height];
         
         for(int l = 0; l < nCircles; l++) {
-                int i = centerPoint[l].x;
-                int j = centerPoint[l].y;
-                int radius = centerRadii[l];
-
-                //Draw a point at the centroid and set the int to = radius
-                if(showRadius) radiuspixels[j*fullWidth + i] = (short) radius;
-
-                //Record the Hough score on a 16-bit scale
-                if(showScores) scorepixels[j*fullWidth + i] = (short) Math.round(houghScores[l]/resolution*65535);
+            int i = centerPoint[l].x;
+            int j = centerPoint[l].y;
+            int radius = centerRadii[l];
+            short ID = (short) circleID[l];
+            float score = houghScores[l];
+            int rSquared = radius*radius;
+            
+            for(int y=-1*radius; y<=radius; y++){
+                for(int x=-1*radius; x<=radius; x++){
+                    if(x*x+y*y <= rSquared){
+                        if(showID){
+                            if(!outOfBounds(j+y,i+x)) IDpixels[(j+y)*width + i + x] = ID;
+                        }
+                        if(showScores) scorepixels[j*width + i] = score;
+                    }
+                }
+            }
         }
         
-        if(showRadius){
-            radiusStack.setPixels(radiuspixels, slice);
-            radiusStack.setSliceLabel(nCircles + " circles found", slice);
+        if(showID){
+            idStack.setPixels(IDpixels, slice);
+            idStack.setSliceLabel(nCircles + " circles found", slice);
         }
         if(showScores){
             scoreStack.setPixels(scorepixels, slice);
