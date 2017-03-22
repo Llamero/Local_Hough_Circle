@@ -72,7 +72,7 @@ public class Hough_GUI implements PlugInFilter {
     final private JLabel guiOutputLabel = new javax.swing.JLabel();
     final private JCheckBox guiRawBox = new javax.swing.JCheckBox();
     final private JCheckBox guiPointBox = new javax.swing.JCheckBox();
-    final private JCheckBox guiRadiusBox = new javax.swing.JCheckBox();
+    final private JCheckBox guiIDBox = new javax.swing.JCheckBox();
     final private JCheckBox guiHoughBox = new javax.swing.JCheckBox();
     final private JCheckBox guiResultsBox = new javax.swing.JCheckBox();
     private JProgressBar guiProgressBar; //Do not initialize so that color of font can be changed
@@ -96,7 +96,7 @@ public class Hough_GUI implements PlugInFilter {
     //Output parameters
     private boolean houghSeries = false;//Contains whether the user wants the Hough series stack as an output - argument syntax: "show_raw"
     private boolean showCircles = false;//Contains whether the user wants the circles found as an output - argument syntax: "show_mask"
-    private boolean showRadius = false;//Contains whether the user wants a map of centroids and radii outputed from search - argument syntax: "show_centroids"
+    private boolean showID = false;//Contains whether the user wants a map of centroids and radii outputed from search - argument syntax: "show_centroids"
     private boolean showScores = false;//Contains whether the user wants a map of centroids and Hough scores outputed from search - argument syntax: "show_scores"
     private boolean results = false;//Contains whether the user wants to export the measurements to a reuslts table 
     
@@ -204,7 +204,7 @@ public class Hough_GUI implements PlugInFilter {
                 if (argument.matches(".*local_search.*")) local = true;
                 if (argument.matches(".*show_raw.*")) houghSeries = true;
                 if (argument.matches(".*show_mask.*")) showCircles = true;
-                if (argument.matches(".*show_centroids.*")) showRadius = true;
+                if (argument.matches(".*show_centroids.*")) showID = true;
                 if (argument.matches(".*show_scores.*")) showScores = true;
                 if (argument.matches(".*results_table.*")) results = true;
             }
@@ -388,12 +388,12 @@ public class Hough_GUI implements PlugInFilter {
             guiRawBox.setVisible(false);
 
             guiPointBox.setSelected(true);
-            guiPointBox.setText("Circle centroid(s) marked on the original image");
+            guiPointBox.setText("Circle outlines overlaid on the original image mask");
 
-            guiRadiusBox.setText("Map of circle radius at centroids (pixel intensity = circle radius)");
-            guiRadiusBox.setVisible(false);               
+            guiIDBox.setText("Filled circles marked by ID number.");
+            guiIDBox.setVisible(false);               
                             
-            guiHoughBox.setText("Map of circle score at centroids (pixel intensity = Hough score)");
+            guiHoughBox.setText("Filled circles marked by Hough score.");
             guiHoughBox.setVisible(false);
             
             guiResultsBox.setSelected(true);
@@ -435,7 +435,7 @@ public class Hough_GUI implements PlugInFilter {
                     //Retrieve the check box status
                     houghSeries = guiRawBox.isSelected();
                     showCircles = guiPointBox.isSelected();
-                    showRadius = guiRadiusBox.isSelected();
+                    showID = guiIDBox.isSelected();
                     showScores = guiHoughBox.isSelected();
                     results = guiResultsBox.isSelected();
 
@@ -489,7 +489,7 @@ public class Hough_GUI implements PlugInFilter {
                     .addComponent(guiIntro1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(guiIntro2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(guiHoughBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(guiRadiusBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(guiIDBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(guiRawBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(guiPointBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(guiResultsBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -609,7 +609,7 @@ public class Hough_GUI implements PlugInFilter {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(guiPointBox, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(guiRadiusBox)
+                .addComponent(guiIDBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(guiHoughBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -678,7 +678,7 @@ public class Hough_GUI implements PlugInFilter {
 
         //Start the background transform by sending the GUI variables to the transform
         guiInput.setParameters(radiusMin, radiusMax, radiusInc, minCircles, maxCircles, thresholdRatio, resolution, ratio, searchBand, 
-                searchRadius, reduce, local, houghSeries, showCircles, showRadius, showScores, results, isGUI);
+                searchRadius, reduce, local, houghSeries, showCircles, showID, showScores, results, isGUI);
 
         //Start the analysis on a separate thread so the GUI stays free.
         guiInput.execute();
@@ -708,12 +708,12 @@ public class Hough_GUI implements PlugInFilter {
         guiSearchRadText.setVisible(false);
         guiReduceBox.setVisible(false);
         guiRawBox.setVisible(false);
-        guiRadiusBox.setVisible(false);
+        guiIDBox.setVisible(false);
         guiHoughBox.setVisible(false);
 
         guiMaxNumText.setText("65535");
         guiHoughBox.setSelected(false);
-        guiRadiusBox.setSelected(false); 
+        guiIDBox.setSelected(false); 
         guiRawBox.setSelected(false);
         guiFrame.pack();
     }
@@ -741,11 +741,11 @@ public class Hough_GUI implements PlugInFilter {
         guiSearchRadText.setVisible(false);
         guiReduceBox.setVisible(false);
         guiRawBox.setVisible(false);
-        guiRadiusBox.setVisible(false);
+        guiIDBox.setVisible(false);
         guiHoughBox.setVisible(false);
 
         guiHoughBox.setSelected(false);
-        guiRadiusBox.setSelected(false); 
+        guiIDBox.setSelected(false); 
         guiRawBox.setSelected(false);
         guiMaxNumText.setText("10");
         guiMinNumText.setText("65535");
@@ -775,7 +775,7 @@ public class Hough_GUI implements PlugInFilter {
         guiSearchRadText.setVisible(false);
         guiReduceBox.setVisible(true);
         guiRawBox.setVisible(true);
-        guiRadiusBox.setVisible(true);
+        guiIDBox.setVisible(true);
         guiHoughBox.setVisible(true);
 
         guiMinNumText.setText("1");
@@ -806,7 +806,7 @@ public class Hough_GUI implements PlugInFilter {
         guiSearchRadText.setVisible(true);
         guiReduceBox.setVisible(true);
         guiRawBox.setVisible(true);
-        guiRadiusBox.setVisible(true);
+        guiIDBox.setVisible(true);
         guiHoughBox.setVisible(true);
 
         guiMinNumText.setText(guiMaxNumText.getText());
