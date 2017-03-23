@@ -1076,7 +1076,9 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                         if(showID){
                             if(!outOfBounds(j+y,i+x)) IDpixels[(j+y)*width + i + x] = ID;
                         }
-                        if(showScores) scorepixels[j*width + i] = score;
+                        if(showScores){
+                            if(!outOfBounds(j+y,i+x)) scorepixels[(j+y)*width + i + x] = score;
+                        }
                     }
                 }
             }
