@@ -184,7 +184,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
         // <editor-fold desc="Send arguments to record">
         //If the macro was being recorded, return the set values to the recorder
         if (Recorder.record){
-            String Command  = "run(\"Local Hough Circle Transform\",\"minRadius=" + radiusMin + ", maxRadius=" + radiusMax + ", inc=" + radiusInc + 
+            String Command  = "run(\"Hough Circle Transform\",\"minRadius=" + radiusMin + ", maxRadius=" + radiusMax + ", inc=" + radiusInc + 
                     ", minCircles=" + minCircles + ", maxCircles=" + maxCircles + ", threshold=" + thresholdRatio + ", resolution=" + resolution +
                      ", ratio=" + ratio + ", bandwidth=" + searchBand + ", local_radius=" + searchRadius + ", ";
             if(reduce) Command += " reduce";
@@ -724,7 +724,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                             currentProgress = Math.round((float) (progress.get()/totalProgress));
 
                             //There is a significant time penalty for progress updates, so only update if needed
-                            if(currentProgress > lastProgress.get()){ //7.8s with if, 8.7s without if, 7.8s with no progress update, 8.7s with delay between GUI updates
+                            if(currentProgress > lastProgress.get() & currentProgress >= 0 & currentProgress <= 100){ //7.8s with if, 8.7s without if, 7.8s with no progress update, 8.7s with delay between GUI updates
                                 if(isGUI) setProgress(currentProgress);
                                 IJ.showProgress(currentProgress, 100);
                                 lastProgress.set(currentProgress);
@@ -1067,7 +1067,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
             int j = centerPoint[l].y;
             int radius = centerRadii[l];
             short ID = (short) circleID[l];
-            float score = houghScores[l];
+            float score = houghScores[l]/resolution;
             int rSquared = radius*radius;
             
             for(int y=-1*radius; y<=radius; y++){
