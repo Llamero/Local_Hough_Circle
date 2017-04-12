@@ -22,6 +22,7 @@ package Hough_Package;
 */
 
 import ij.*;
+import ij.measure.Calibration;
 import ij.process.*;
 import java.awt.*;
 import ij.plugin.HyperStackConverter;
@@ -59,6 +60,12 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     private boolean showID = false; //Contains whether the user wants a map of centroids and radii outputed from search - argument syntax: "show_centroids"
     private boolean showScores = false; //Contains whether the user wants a map of centroids and Hough scores outputed from search - argument syntax: "show_scores"
     private boolean results = false; //Contains whether the user wants to export the measurements to a reuslts table 
+    private Calibration pixelCal;
+    private String pixelUnits; //Stores the unit of measurement fo the pixels
+    private double pixelDimensions; //Stores the size of each pixel
+    private int[] imageDimensions; //Pixel dimensions of stack
+    private String timeUnits; //Frame units
+    private double timeDimension; //Time step per frame
     
     private String currentStatus = ""; //String for outputting current status
     private boolean isGUI; //Whether a GUI is active (or a macro called the plugin)
@@ -176,7 +183,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
         
         //If radiusInc is not a divisor of radiusMax-radiusMin, return error
         if((radiusMax-radiusMin)%radiusInc != 0){
-            IJ.showMessage("Radius increment must be a divisor of maximum radius - minimum radius.");
+            IJ.showMessage("Error: Radius increment must be a divisor of maximum radius - minimum radius.");
             IJ.showMessage("radiusMin=" + radiusMin + ", radiusMax=" + radiusMax + ", radiusInc=" + radiusInc);
             return;          
         }
@@ -215,6 +222,40 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
         
         //Import the ImagePlus as a stack
         ImageStack stack = imp.getStack();
+        
+        //Get pixel dimensions and units
+        pixelCal = imp.getCalibration();
+        pixelUnits = pixelCal.getUnits();
+        pixelDimensions = pixelCal.pixelWidth;
+        imageDimensions = imp.getDimensions(); //(width, height, nChannels, nSlices, nFrames)
+        
+        //If the stack has frames, get the time units and step size
+        if(imageDimensions[2] == 1 & imageDimensions[3] == 1 & imageDimensions[4] > 1){
+            timeUnits = pixelCal.getTimeUnit();
+            timeDimension = pixelCal.frameInterval;
+            
+            //If the time dimension is zero, then use slice # instead
+            if(timeDimension == 0){
+                timeUnits = "slice #";
+                timeDimension = 1;
+            }
+            
+            //Put frames into slice dimension to keep things constant
+            imp.setDimensions(1, imageDimensions[4], 1);
+        }
+        
+        //If the stack has Z-steps then use slice # as units 
+        else if(imageDimensions[2] == 1 & imageDimensions[3] >= 1 & imageDimensions[4] == 1){
+            timeUnits = "slice #";
+            timeDimension = 1;  
+        }
+
+        //If the stack is a hyper-stack, then abort analysis
+        else{
+            IJ.showMessage("Error: This stack is a hyperstack.  Please convert to stack before processing.");
+            IJ.showMessage("nChannels=" + imageDimensions[2] + ", nSlices=" + imageDimensions[3] + ", nFrames=" + imageDimensions[4]);
+            return;
+        }
         
         //Get the ROI dimensions - no ROI = full image
         r = stack.getRoi();
@@ -383,20 +424,46 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
             if(depth>1) houghPlus = HyperStackConverter.toHyperStack(houghPlus, 1, depth, imp.getNSlices(), "default", "grayscale");
             houghPlus.show();
          }
-         if(showCircles) new ImagePlus("Centroid overlay", circleStack).show();
+         if(showCircles){
+            ImagePlus Circle_Map = new ImagePlus("Centroid overlay", circleStack);
+            Circle_Map.show(); 
+            
+            //If orignal stack was movie, convert this stack to movie
+            if(imageDimensions[4] > 1){           
+                Circle_Map.setDimensions(1, 1, imageDimensions[4]);
+            }             
+            Circle_Map.setCalibration(pixelCal); 
+         }
          if(showID){
             ImagePlus ID_Map = new ImagePlus("Centroid map", idStack);
             ID_Map.show();
             ID_Map.setLut(RAND_LUT);
             ID_Map.setDisplayRange(0,circleIDcounter);
+            
+            //If orignal stack was movie, convert this stack to movie
+            if(imageDimensions[4] > 1){           
+                ID_Map.setDimensions(1, 1, imageDimensions[4]);
+            }             
+            ID_Map.setCalibration(pixelCal); 
          }
          if(showScores){
              ImagePlus Score_Map = new ImagePlus("Score map", scoreStack);
              Score_Map.show();
              Score_Map.setLut(GYR_LUT);
              Score_Map.setDisplayRange(thresholdRatio, 1D);
+             
+            //If orignal stack was movie, convert this stack to movie
+            if(imageDimensions[4] > 1){           
+                Score_Map.setDimensions(1, 1, imageDimensions[4]);
+            }             
+            Score_Map.setCalibration(pixelCal); 
          } 
          if(results) rt.show("Results");
+         
+         //Put slices back into frame dimension if necessary
+         if(imageDimensions[4] > 1){           
+            imp.setDimensions(1, 1, imageDimensions[4]);
+         }
          
          IJ.showProgress(0);
     }
@@ -1120,13 +1187,13 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
         for(int a = 0; a < nCircles; a++){
             rt.incrementCounter();
             rt.addValue("ID", circleID[a]);
-            rt.addValue("X", centerPoint[a].x);
-            rt.addValue("Y", centerPoint[a].y);
-            rt.addValue("Radius", centerRadii[a]);
+            rt.addValue("X (" + pixelUnits + ")" , centerPoint[a].x*pixelDimensions);
+            rt.addValue("Y (" + pixelUnits + ")", centerPoint[a].y*pixelDimensions);
+            rt.addValue("Radius (" + pixelUnits + ")", centerRadii[a]*pixelDimensions);
             rt.addValue("Score", ((float) houghScores[a]/resolution));
             rt.addValue("nCircles", nCircles);
             rt.addValue("Resolution", lutSize);
-            rt.addValue("Frame", frame);
+            rt.addValue("Frame (" + timeUnits + ")", frame*timeDimension);
             rt.addValue("Method", method);
         }
     }
