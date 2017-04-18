@@ -834,8 +834,18 @@ public class Hough_GUI implements PlugInFilter {
                     //Do nothing
                     break;
                 case KeyEvent.KEY_RELEASED:
-                    if(e.getKeyCode() == KeyEvent.VK_ESCAPE) guiInput.interruptThreads(true);
-                    IJ.showProgress(0);
+                    if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
+                        guiInput.interruptThreads(true);
+                        guiInput.cancel(true); //Stop analysis thread
+                        IJ.showProgress(0); //Reset progress bar
+                        if(isGUI){
+                            guiOKButton.setText("OK");
+                            guiFrame.pack(); 
+                        }
+                        analysisStarted = false;
+                        IJ.showStatus("Analysis cancelled..."); //Update IJ status
+                        guiInput = new Hough_Circle(); //Create new instance of analysis worker, since last worker thread was cancelled
+                    }
                     break;
                 case KeyEvent.KEY_TYPED:
                     //Do nothing
