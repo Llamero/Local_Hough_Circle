@@ -15,6 +15,10 @@ import static ij.plugin.filter.PlugInFilter.DONE;
 import static ij.plugin.filter.PlugInFilter.SUPPORTS_MASKING;
 import ij.process.ImageProcessor;
 import java.awt.Color;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -356,27 +360,25 @@ public class Hough_GUI implements PlugInFilter {
 
             guiLocalBox.setSelected(false);
             guiLocalBox.setText("Use a local search space to speed up search (only applies to movies)");
-            guiLocalBox.addActionListener(new java.awt.event.ActionListener() {
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    if(guiLocalBox.isSelected()){
-                        //Setup local easy
-                        if(guiEasyModeButton.isSelected()){
-                            easyLocalGUI();
-                        }
-                        //Setup local advanced
-                        else{
-                            advancedLocalGUI();
-                        }
+            guiLocalBox.addActionListener((java.awt.event.ActionEvent evt) -> {
+                if(guiLocalBox.isSelected()){
+                    //Setup local easy
+                    if(guiEasyModeButton.isSelected()){
+                        easyLocalGUI();
                     }
+                    //Setup local advanced
                     else{
-                        //Setup full easy
-                        if(guiEasyModeButton.isSelected()){
-                            easyFullGUI();
-                        }
-                        //setup full advanced
-                        else{
-                            advancedFullGUI();
-                        }    
+                        advancedLocalGUI();
+                    }
+                }
+                else{
+                    //Setup full easy
+                    if(guiEasyModeButton.isSelected()){
+                        easyFullGUI();
+                    }    
+                    //setup full advanced
+                    else{
+                        advancedFullGUI();
                     }
                 }
             });
@@ -391,10 +393,10 @@ public class Hough_GUI implements PlugInFilter {
             guiPointBox.setText("Circle outlines overlaid on the original image mask");
 
             guiIDBox.setText("Filled circles marked by ID number.");
-            guiIDBox.setVisible(false);               
+            //guiIDBox.setVisible(false);               
                             
             guiHoughBox.setText("Filled circles marked by Hough score.");
-            guiHoughBox.setVisible(false);
+            //guiHoughBox.setVisible(false);
             
             guiResultsBox.setSelected(true);
             guiResultsBox.setText("Export measurements to the results table");
@@ -474,8 +476,7 @@ public class Hough_GUI implements PlugInFilter {
                     IJ.showStatus("Analysis cancelled..."); //Update IJ status
                     guiInput = new Hough_Circle(); //Create new instance of analysis worker, since last worker thread was cancelled
                 }    
-            } //When push button is pushed, retrieve the state of
-            );
+            });         
             // </editor-fold>
             // <editor-fold desc="Swing GUI Part 2">
             javax.swing.GroupLayout layout = new javax.swing.GroupLayout(guiFrame.getContentPane());
@@ -635,17 +636,23 @@ public class Hough_GUI implements PlugInFilter {
         //Create and instance of the analysis class
         guiInput = new Hough_Circle();
         
+        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        manager.addKeyEventDispatcher(new MyDispatcher());
+        
         //Add an action listener to the status to allow for GUI to be updated
         //Code modified from: http://www.javacreed.com/swing-worker-example/
+
         guiInput.addPropertyChangeListener((final PropertyChangeEvent event) -> {
             switch (event.getPropertyName()) {
                 
                 //If event has progress flag, update progress bar
                 case "progress":
                     barString = guiInput.getStatus();
-                    guiProgressBar.setIndeterminate(false);
-                    guiProgressBar.setValue((Integer) event.getNewValue()); 
-                    guiProgressBar.setString(barString);
+                    if(isGUI){
+                        guiProgressBar.setIndeterminate(false);
+                        guiProgressBar.setValue((Integer) event.getNewValue()); 
+                        guiProgressBar.setString(barString);
+                    }
                     break;
                     
                 //if event has state flag, it indicates thread completion status
@@ -655,21 +662,27 @@ public class Hough_GUI implements PlugInFilter {
                         //If worker thread is done, then clear out progress indicators and set button to "OK"
                         case DONE:
                             IJ.showProgress(0);
-                            guiProgressBar.setVisible(false);
-                            guiOKButton.setText("OK");
+                            if(isGUI){
+                                guiProgressBar.setVisible(false);
+                                guiOKButton.setText("OK");
+                            }
                             analysisStarted = false;
                             IJ.showStatus("Analysis complete...");
                             break;
                             
                         //If worker has just started, set progress to indetertminate, to let user know plugin is active
                         case STARTED:
-                            guiProgressBar.setVisible(true);
-                            guiProgressBar.setIndeterminate(true);
-                            guiProgressBar.setString("Starting Transform...");
+                            if(isGUI){
+                                guiProgressBar.setVisible(true);
+                                guiProgressBar.setIndeterminate(true);
+                                guiProgressBar.setString("Starting Transform...");
+                            }
                             break;
                         case PENDING:
-                            guiProgressBar.setVisible(true);
-                            guiProgressBar.setIndeterminate(true);
+                            if(isGUI){
+                                guiProgressBar.setVisible(true);
+                                guiProgressBar.setIndeterminate(true);
+                            }
                             break;
                     }
                     break;
@@ -708,12 +721,12 @@ public class Hough_GUI implements PlugInFilter {
         guiSearchRadText.setVisible(false);
         guiReduceBox.setVisible(false);
         guiRawBox.setVisible(false);
-        guiIDBox.setVisible(false);
-        guiHoughBox.setVisible(false);
+        //guiIDBox.setVisible(false);
+        //guiHoughBox.setVisible(false);
 
         guiMaxNumText.setText("65535");
-        guiHoughBox.setSelected(false);
-        guiIDBox.setSelected(false); 
+        //guiHoughBox.setSelected(false);
+        //guiIDBox.setSelected(false); 
         guiRawBox.setSelected(false);
         guiFrame.pack();
     }
@@ -741,11 +754,11 @@ public class Hough_GUI implements PlugInFilter {
         guiSearchRadText.setVisible(false);
         guiReduceBox.setVisible(false);
         guiRawBox.setVisible(false);
-        guiIDBox.setVisible(false);
-        guiHoughBox.setVisible(false);
+        //guiIDBox.setVisible(false);
+        //guiHoughBox.setVisible(false);
 
-        guiHoughBox.setSelected(false);
-        guiIDBox.setSelected(false); 
+        //guiHoughBox.setSelected(false);
+        //guiIDBox.setSelected(false); 
         guiRawBox.setSelected(false);
         guiMaxNumText.setText("10");
         guiMinNumText.setText("65535");
@@ -775,8 +788,8 @@ public class Hough_GUI implements PlugInFilter {
         guiSearchRadText.setVisible(false);
         guiReduceBox.setVisible(true);
         guiRawBox.setVisible(true);
-        guiIDBox.setVisible(true);
-        guiHoughBox.setVisible(true);
+        //guiIDBox.setVisible(true);
+        //guiHoughBox.setVisible(true);
 
         guiMinNumText.setText("1");
         guiMaxNumText.setText("1");
@@ -806,10 +819,32 @@ public class Hough_GUI implements PlugInFilter {
         guiSearchRadText.setVisible(true);
         guiReduceBox.setVisible(true);
         guiRawBox.setVisible(true);
-        guiIDBox.setVisible(true);
-        guiHoughBox.setVisible(true);
+        //guiIDBox.setVisible(true);
+        //guiHoughBox.setVisible(true);
 
         guiMinNumText.setText(guiMaxNumText.getText());
         guiFrame.pack();
+    }
+    
+    //If hey was pressed, then record if it was the escape key
+    private class MyDispatcher implements KeyEventDispatcher {
+        @Override
+        public boolean dispatchKeyEvent(KeyEvent e) {
+            switch (e.getID()) {
+                case KeyEvent.KEY_PRESSED:
+                    //Do nothing
+                    break;
+                case KeyEvent.KEY_RELEASED:
+                    if(e.getKeyCode() == KeyEvent.VK_ESCAPE) guiInput.interruptThreads(true);
+                    IJ.showProgress(0);
+                    break;
+                case KeyEvent.KEY_TYPED:
+                    //Do nothing
+                    break;
+                default:
+                    break;
+            }
+            return false;
+        }
     }
 }
