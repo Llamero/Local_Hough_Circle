@@ -673,7 +673,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
 
                         //There is a significant time penalty for progress updates, so only update if needed
                         if(currentProgress > lastProgress.get()){ //7.8s with if, 8.7s without if, 7.8s with no progress update, 8.7s with delay between GUI updates
-                            if(isGUI) setProgress(currentProgress);
+                            if(isGUI && currentProgress <= 100) setProgress(currentProgress);
                             IJ.showProgress(currentProgress, 100);
                             lastProgress.set(currentProgress);
                         }
