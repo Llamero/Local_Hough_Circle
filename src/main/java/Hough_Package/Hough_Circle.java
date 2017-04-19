@@ -387,8 +387,8 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                         //Create the hyperstach to put into the result if needed
                         HoughSpaceSeries(slice, houghStack);
                     }
-                    // Mark the center of the found circles in a new image if user wants to find centers                    
-                    if(showCircles || showID || showScores || results) getCenterPoints();
+                    // Mark the center of the found circles in a new image(always do this as center points are necessary for local search)                   
+                    getCenterPoints();
                 }                
             }
             //Otherwise, perform the full transform
@@ -400,7 +400,7 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
                     HoughSpaceSeries(slice, houghStack);
                 }
                 // Mark the center of the found circles in a new image if user wants to find centers               
-                if(showCircles || showID || showScores || results) getCenterPoints();
+                if(showCircles || showID || showScores || results || local) getCenterPoints();
                
             }
              // </editor-fold>
