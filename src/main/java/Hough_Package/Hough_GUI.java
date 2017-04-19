@@ -293,7 +293,7 @@ public class Hough_GUI implements PlugInFilter {
             guiMinNumLabel.setVisible(false);
 
             guiMinNumText.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-            guiMinNumText.setText("0");
+            guiMinNumText.setText("1");
             guiMinNumText.setToolTipText("The minimum number of circles you expect to find in the image");
             guiMinNumText.setVisible(false);
 
@@ -759,7 +759,7 @@ public class Hough_GUI implements PlugInFilter {
         //guiHoughBox.setSelected(false);
         //guiIDBox.setSelected(false); 
         guiRawBox.setSelected(false);
-        guiMinNumText.setText("1");
+        //guiMinNumText.setText("1");
         guiMaxNumText.setText("65535");
         guiFrame.pack();
     }
@@ -790,8 +790,8 @@ public class Hough_GUI implements PlugInFilter {
         //guiIDBox.setVisible(true);
         //guiHoughBox.setVisible(true);
 
-        guiMinNumText.setText("1");
-        guiMaxNumText.setText("1");
+        //guiMinNumText.setText("1");
+        //guiMaxNumText.setText("1");
         guiFrame.pack();
     }
     void advancedLocalGUI(){
@@ -821,7 +821,7 @@ public class Hough_GUI implements PlugInFilter {
         //guiIDBox.setVisible(true);
         //guiHoughBox.setVisible(true);
 
-        guiMinNumText.setText(guiMaxNumText.getText());
+        guiMaxNumText.setText(guiMinNumText.getText());
         guiFrame.pack();
     }
     
