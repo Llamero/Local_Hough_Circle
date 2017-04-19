@@ -345,12 +345,12 @@ public class Hough_GUI implements PlugInFilter {
             guiRadiusBandText.setVisible(false);
 
             guiSearchRadLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-            guiSearchRadLabel.setText("Local radius search area (search radius near last centroid):");
+            guiSearchRadLabel.setText("Local search radius for position of next centroid:");
             guiSearchRadLabel.setVisible(false);
 
             guiSearchRadText.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
             guiSearchRadText.setText("10");
-            guiSearchRadText.setToolTipText("The area around a centroid to look for the next centroid");
+            guiSearchRadText.setToolTipText("The radius around a centroid to look for the next centroid");
             guiSearchRadText.setVisible(false);
 
             guiReduceBox.setSelected(true);
