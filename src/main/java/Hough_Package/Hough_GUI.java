@@ -737,10 +737,10 @@ public class Hough_GUI implements PlugInFilter {
         guiMaxText.setVisible(true);
         guiIncLabel.setVisible(false);
         guiIncText.setVisible(false);
-        guiMinNumLabel.setVisible(false);
-        guiMinNumText.setVisible(false);
-        guiMaxNumLabel.setVisible(true);
-        guiMaxNumText.setVisible(true);
+        guiMinNumLabel.setVisible(true);
+        guiMinNumText.setVisible(true);
+        guiMaxNumLabel.setVisible(false);
+        guiMaxNumText.setVisible(false);
         guiThreshLabel.setVisible(true);
         guiThreshText.setVisible(true);
         guiResLabel.setVisible(false);
@@ -759,8 +759,8 @@ public class Hough_GUI implements PlugInFilter {
         //guiHoughBox.setSelected(false);
         //guiIDBox.setSelected(false); 
         guiRawBox.setSelected(false);
-        guiMaxNumText.setText("10");
-        guiMinNumText.setText("65535");
+        guiMinNumText.setText("1");
+        guiMaxNumText.setText("65535");
         guiFrame.pack();
     }
     void advancedFullGUI(){
