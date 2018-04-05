@@ -1402,7 +1402,8 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
     */
     private void clearNeighbours(int x,int y, int radius) {
         // The following code just clean the points around the center of the circle found.
-	int radiusSquared = (int) Math.round(Math.pow(radius*ratio, 2D));
+        radius = (int) Math.round(radius * ratio); //Scale the radius by the desired clearing ratio
+	int radiusSquared = (int) Math.pow(radius, 2D);
         //int radiusSquared = radius*radius;
 
         int y1 = (int)Math.floor (y - radius);
