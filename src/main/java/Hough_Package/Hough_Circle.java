@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.*;
 import ij.measure.ResultsTable;
 import ij.plugin.filter.Analyzer;
+import static java.lang.System.gc;
 import java.util.Arrays;
 import java.util.List;
 
@@ -464,8 +465,28 @@ public class Hough_Circle extends SwingWorker<Integer, String>{
          if(imageDimensions[4] > 1){           
             imp.setDimensions(1, 1, imageDimensions[4]);
          }
-         
+         clearArrays();
          IJ.showProgress(0);
+    }
+    
+    private void clearArrays(){
+        imageValues = null; // Raw image (returned by ip.getPixels()) - float is used to allow 8, 16 or 32 bit images
+        houghValues = null; // Hough Space Values [X coord][Y coord][radius index]
+        localHoughValues = null; //Local Hough space [circle#][X coord][Y coord][radius index]
+        localHoughParameters = null; //Array to pass local Hough space parameters to centroid search [circle#][parameter vector]
+
+        centerPoint = null; // Center Points of the Circles Found.
+        centerRadii = null; //Corresponding radii of the cricles marked by the center points
+        houghScores = null; //Corresponding Hough scores for each centroid
+        circleID = null; //Corresponding ID # for each centroid
+        lut = null; // LookUp Table for x and y tranform shifts in an octahedral manner
+
+        houghScores = null;
+        centerRadii = null;
+        centerPoint = null;
+        circleID = null;
+        
+        gc();
     }
     
     //OPTMIZED - cancellable
